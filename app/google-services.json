@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "863271138241",
+    "project_id": "stafftracking-fe972",
+    "storage_bucket": "stafftracking-fe972.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:863271138241:android:7d505c9b993d8d8b6fb540",
+        "android_client_info": {
+          "package_name": "com.example.stafftracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "863271138241-kj9f71u3mahjhoqrqm484tfhjtirsr7d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcIj97CXKvy0LvDLex1CXzreUtAHgnnQ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "863271138241-kj9f71u3mahjhoqrqm484tfhjtirsr7d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
