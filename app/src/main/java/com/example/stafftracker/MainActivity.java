@@ -10,6 +10,7 @@ import android.Manifest;
 import android.app.Activity;
 
 import android.app.Person;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 
 import android.os.Bundle;
@@ -20,7 +21,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.stafftracker.utils.BackgroundService;
 import com.example.stafftracker.utils.CheckPermission;
+import com.example.stafftracker.utils.LocationService;
 import com.example.stafftracker.utils.PermissionUtils;
 import com.example.stafftracker.view.BottomSheetView;
 import com.example.stafftracker.view.HomeFragment;
@@ -43,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements BottomSheetView.B
     PersonFragment personFragment = new PersonFragment();
     private FusedLocationProviderClient fusedLocationClient;
     BottomNavigationView bottomNavigationView;
-    Button button;
+    public Button button;
     TextView textView;
     FloatingActionButton floatingActionButton;
     BottomSheetView bottomSheetView = new BottomSheetView();
@@ -53,7 +56,6 @@ public class MainActivity extends AppCompatActivity implements BottomSheetView.B
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         button = findViewById(R.id.button);
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements BottomSheetView.B
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         enableMyLocation();
         checkLocationPermission();
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         button.setOnClickListener(v -> getLocation(MainActivity.this));
         floatingActionButton.setOnClickListener(v -> {
@@ -133,6 +136,25 @@ public class MainActivity extends AppCompatActivity implements BottomSheetView.B
 
 
         }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        System.out.println("destroyed.");
+        //
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        System.out.println("Resumed.");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        System.out.println("Stopped.");
+        startService(new Intent(this, BackgroundService.class));
+    }
 
     @Override
     public void onButtonClicked(String text) {
@@ -160,12 +182,13 @@ public class MainActivity extends AppCompatActivity implements BottomSheetView.B
            boolean isChecked = menuItem.getItemId() == item.getItemId();
        }
        switch (item.getItemId()){
-           case R.id.person:{
-               loadFragment(personFragment);
-           }break;
            case R.id.home: {
                loadFragment(homeFragment);
            }break;
+           case R.id.person:{
+               loadFragment(personFragment);
+           }break;
+
            case R.id.settings:{
 
            }break;
