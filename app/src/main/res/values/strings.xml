@@ -1,5 +1,42 @@
 <resources>
-    <string name="app_name">staffTracker</string>
+    <string name="app_name" translatable="false">staffTracker</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="hello_blank_fragment">boş fragment</string>
+    <string name="add_company">Firma Görüşmesi Ekle</string>
+    <string name="company_edit">Şirket adı...</string>
+    <string name="comp_address">Adres:</string>
+    <string name="ekle">Ekle</string>
+    <string name="email">email</string>
+    <string name="password">password</string>
+    <string name="login">Login</string>
+    <string name="forgot_password">Şifremi unuttum</string>
+    <string name="switch_text">Arkaplan Takibi</string>
+    <string name="company_aciklama">Açıklama :</string>
+    <string name="add_description">Açıklama ekle</string>
+    <string name="meeting_rate">Görüşme verimi</string>
+    <string name="adres_on">Adres :</string>
+    <string name="title_activity_splash_screen">FullscreenActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="sales_tracker">Sales Tracker</string>
+    <string name="forgot_password_alert">Kayıtlı olan e-mail adresini gir.</string>
+    <string name="send">Gönder</string>
+    <string name="cancel_text">İptal</string>
+    <string name="login_success">Giriş başarılı.</string>
+    <string name="exit_app">Çıkış</string>
+    <string name="exit_app_message">Uygulamadan çıkmak istediğine emin misin?</string>
+    <string name="yes">Evet</string>
+    <string name="no">Hayır</string>
+    <string name="need_permission_alert">İzin gerekli.</string>
+    <string name="need_permission_content">\"Uygulamanın düzgün çalışması için konum bilgilerine erişim gerekli.\"</string>
+    <string name="block">Engelle</string>
+    <string name="need_permission_blocked">\"This application need to use some permissions, \" +                                     \"you can grant them in the application settings.\"</string>
+    <string name="go_to_settings">Ayarlara Git.</string>
+    <string name="home">Harita</string>
+    <string name="person">Profilim</string>
+    <string name="settings">Ayarlarım</string>
+    <string name="tasks">Görevlerim</string>
+    <string name="zaman">Zaman :</string>
+    <string name="durum">Durum</string>
+
 </resources>

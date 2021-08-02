@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="8dp">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        app:cardCornerRadius="5dp"
+        android:elevation="4dp"
+        app:cardBackgroundColor="#cacaca"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.01999998">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/gradient_card">
+
+            <ImageView
+                android:id="@+id/company_image"
+                android:layout_width="102dp"
+                android:layout_height="87dp"
+                android:layout_margin="2dp"
+                android:src="@drawable/person_icon"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+
+            <TextView
+                android:id="@+id/company_name"
+                android:layout_width="180dp"
+                android:layout_height="26dp"
+                android:layout_marginTop="16dp"
+                android:text="COMPANY_NAME"
+                android:textColor="#fff"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.432"
+                app:layout_constraintStart_toEndOf="@+id/company_image"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="@string/adres_on"
+
+                android:textSize="15sp"
+                app:layout_constraintBottom_toBottomOf="@+id/company_address"
+                app:layout_constraintEnd_toStartOf="@+id/company_address"
+                app:layout_constraintHorizontal_bias="0.44"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/company_address"
+                app:layout_constraintVertical_bias="1.0" />
+
+            <TextView
+                android:id="@+id/company_address"
+                android:layout_width="291dp"
+                android:layout_height="38dp"
+                android:textSize="15sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/company_image"
+                app:layout_constraintVertical_bias="0.0" />
+
+            <me.zhanghai.android.materialratingbar.MaterialRatingBar
+                android:id="@+id/card_rating_bar"
+                style="@style/Widget.MaterialRatingBar.RatingBar"
+                android:layout_width="176dp"
+                android:layout_height="26dp"
+                android:layout_marginTop="8dp"
+                android:progressTint="@color/purple_500"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.452"
+                app:layout_constraintStart_toEndOf="@+id/company_image"
+                app:layout_constraintTop_toBottomOf="@+id/company_name" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/company_aciklama"
+
+                android:textSize="15sp"
+                app:layout_constraintBottom_toBottomOf="@+id/company_description"
+                app:layout_constraintEnd_toStartOf="@+id/company_description"
+                app:layout_constraintHorizontal_bias="0.509"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/company_address" />
+
+            <TextView
+                android:id="@+id/company_description"
+                android:layout_width="293dp"
+                android:layout_height="24dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="10dp"
+                android:textSize="15sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/company_address"
+                app:layout_constraintTop_toBottomOf="@+id/company_address" />
+
+            <Button
+                android:id="@+id/remove_company"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@drawable/ic_baseline_remove_circle_24"
+                app:layout_constraintBottom_toTopOf="@+id/card_rating_bar"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/company_name"
+                app:layout_constraintTop_toTopOf="parent"
+               />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

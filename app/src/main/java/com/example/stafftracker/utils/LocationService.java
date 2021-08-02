@@ -63,7 +63,7 @@ public class LocationService extends Service {
         long timeDelta = location.getTime() - currentBestLocation.getTime();
         boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
         boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
-        boolean isNewer = timeDelta > 0;
+        boolean isNewer = true;
 
         // If it's been more than two minutes since the current location, use the new location
         // because the user has likely moved
@@ -78,7 +78,7 @@ public class LocationService extends Service {
         int accuracyDelta = (int) (location.getAccuracy() - currentBestLocation.getAccuracy());
         boolean isLessAccurate = accuracyDelta > 0;
         boolean isMoreAccurate = accuracyDelta < 0;
-        boolean isSignificantlyLessAccurate = accuracyDelta > 200;
+        boolean isSignificantlyLessAccurate = accuracyDelta > 2;
 
         // Check if the old and new location are from the same provider
         boolean isFromSameProvider = isSameProvider(location.getProvider(),
@@ -111,8 +111,7 @@ public class LocationService extends Service {
     public void onDestroy() {
         // handler.removeCallbacks(sendUpdatesToUI);
         super.onDestroy();
-        Log.v("STOP_SERVICE", "DONE");
-        locationManager.removeUpdates(listener);
+
     }
 
     public static Thread performOnBackgroundThread(final Runnable runnable) {
@@ -142,6 +141,7 @@ public class LocationService extends Service {
                 intent.putExtra("Longitude", loc.getLongitude());
                 intent.putExtra("Provider", loc.getProvider());
                 sendBroadcast(intent);
+                Toast.makeText(getApplicationContext(), loc.getLatitude()+","+ loc.getLongitude() , Toast.LENGTH_SHORT).show();
 
             }
         }

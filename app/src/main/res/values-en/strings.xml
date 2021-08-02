@@ -1,0 +1,42 @@
+<resources>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="add_company">Add Company Meeting</string>
+    <string name="company_edit">Company name…</string>
+    <string name="comp_address">Address:</string>
+    <string name="ekle">Add</string>
+    <string name="email">email</string>
+    <string name="password">password</string>
+    <string name="login">Login</string>
+    <string name="forgot_password">Forgot password</string>
+    <string name="switch_text">Background Track</string>
+    <string name="company_aciklama">Description :</string>
+    <string name="add_description">Add Description</string>
+    <string name="meeting_rate">Meeting Efficiency</string>
+    <string name="adres_on">Address :</string>
+    <string name="title_activity_splash_screen">FullscreenActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="sales_tracker">Sales Tracker</string>
+    <string name="forgot_password_alert">Enter your signed mail address.</string>
+    <string name="send">Send</string>
+    <string name="cancel_text">Cancel</string>
+    <string name="login_success">Login Successful</string>
+    <string name="exit_app">Exit</string>
+    <string name="exit_app_message">Are you sure you want to exit?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="need_permission_alert">İzin gerekli.</string>
+    <string name="need_permission_content">\"Uygulamanın düzgün çalışması için konum bilgilerine erişim gerekli.\"</string>
+    <string name="block">Engelle</string>
+    <string name="need_permission_blocked">\"This application need to use some permissions, \" +                                     \"you can grant them in the application settings.\"</string>
+    <string name="go_to_settings">Ayarlara Git.</string>
+    <string name="home">Map</string>
+    <string name="person">Profile</string>
+    <string name="settings">Settings</string>
+    <string name="tasks">Tasks</string>
+    <string name="zaman">Zaman :</string>
+    <string name="durum">Durum</string>
+
+
+</resources>

@@ -3,14 +3,18 @@
 
     <item
         android:id="@+id/home"
-        android:title="Home"
-        android:icon="@drawable/common_google_signin_btn_icon_dark"/>
+        android:title="@string/home"
+        android:icon="@drawable/map"/>
     <item
         android:id="@+id/person"
-        android:title="Person"
-        android:icon="@drawable/common_full_open_on_phone"/>
+        android:title="@string/person"
+        android:icon="@drawable/person_icon"/>
     <item
         android:id="@+id/settings"
-        android:title="Settings"
-        android:icon="@drawable/common_google_signin_btn_icon_light"/>
+        android:title="@string/settings"
+        android:icon="@drawable/setting_icon"/>
+    <item
+        android:id="@+id/tasks"
+        android:title="@string/tasks"
+        android:icon="@drawable/tasks"/>
 </menu>
