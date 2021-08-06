@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.Location;
 import android.media.AudioManager;
@@ -54,6 +55,7 @@ public class BackgroundService extends Service {
     boolean onLoop =  false;
     ToneGenerator toneGen1 = new ToneGenerator(AudioManager.STREAM_SYSTEM, 100);
 
+
     ArrayList<Map<String, Object>> _points = new ArrayList<>();
 
 
@@ -64,6 +66,9 @@ public class BackgroundService extends Service {
 
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
             startMyOwnForeground();
+        else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.M){
+            startMyOwnForeground();
+        }
         else
             startForeground(1, new Notification());
         if(!onLoop){
@@ -75,26 +80,42 @@ public class BackgroundService extends Service {
         else stopRepeatingTask();
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     private void startMyOwnForeground()
     {
         String NOTIFICATION_CHANNEL_ID = "example.permanence";
         String channelName = "Background Service";
-        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
-        chan.setLightColor(Color.BLUE);
-        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        NotificationChannel chan = null;
+        NotificationManager mNotificationManager =
+                (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(getApplicationContext().getApplicationContext(), "notify_001");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            chan.setLightColor(Color.BLUE);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        }
 
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         assert manager != null;
-        manager.createNotificationChannel(chan);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            manager.createNotificationChannel(chan);
+        }
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
-        Notification notification = notificationBuilder.setOngoing(true)
-                .setContentTitle("App is running in background")
-                .setPriority(NotificationManager.IMPORTANCE_MIN)
-                .setCategory(Notification.CATEGORY_SERVICE)
-                .build();
-        startForeground(2, notification);
+        Notification notification = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            notification = notificationBuilder.setOngoing(true)
+                    .setContentTitle("App is running in background")
+                    .setCategory(Notification.CATEGORY_SERVICE)
+                    .build();
+        }
+
     }
 
 
@@ -200,6 +221,7 @@ public class BackgroundService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        System.out.println("Service OnBind");
         return null;
     }
 

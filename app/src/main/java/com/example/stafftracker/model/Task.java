@@ -9,7 +9,17 @@ public class Task {
     int status;
     double latitude, longitude;
 
-    public Task(String id, String userId, String title, long created, String description, int status, double latitude, double longitude) {
+    public String getStaffNote() {
+        return staffNote;
+    }
+
+    public void setStaffNote(String staffNote) {
+        this.staffNote = staffNote;
+    }
+
+    String staffNote;
+
+    public Task(String id, String userId, String title, long created, String description, int status, double latitude, double longitude,String staffNote) {
         this.id = id;
         this.userId = userId;
         this.title = title;
@@ -18,6 +28,7 @@ public class Task {
         this.status = status;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.staffNote = staffNote;
     }
 
     public String getId() {

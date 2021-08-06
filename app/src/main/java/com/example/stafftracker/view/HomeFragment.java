@@ -2,9 +2,11 @@ package com.example.stafftracker.view;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,18 +16,29 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentResultListener;
+
 import com.example.stafftracker.MainActivity;
 import com.example.stafftracker.R;
+import com.example.stafftracker.utils.CustomDialog;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,6 +50,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import org.jetbrains.annotations.NotNull;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,8 +61,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
     BottomSheetView bottomSheetView;
     MainActivity mainActivity;
     FusedLocationProviderClient fusedLocationProviderClient;
-    FloatingActionButton floatingActionButton, testFloatingactionButton;
+    FloatingActionButton floatingActionButton;
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    LatLng currentLocation;
+    LatLng taskPosition;
+    String taskMarkerTitle = "";
+    String[] task_attr = new String[8];
+
 
 
 
@@ -66,13 +85,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
         floatingActionButton.setOnClickListener(v -> {
             getlocation();
         });
-        testFloatingactionButton = view.findViewById(R.id.testfloatingActionButton);
-        testFloatingactionButton.setOnClickListener(v -> {
-            System.out.println("test basıldı.");
-            Bundle result = new Bundle();
-            result.putString("key", "test");
-            getParentFragmentManager().setFragmentResult("request", result);
-        });
+        mainActivity.cardView.setVisibility(View.VISIBLE);
         return view;
 
 
@@ -89,7 +102,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
                         System.out.println();
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
-                            bottomSheetView = new BottomSheetView( location);
+                            bottomSheetView = new BottomSheetView(location);
                             bottomSheetView.show(getChildFragmentManager(), "bottomsheet" );
 
                         }
@@ -104,45 +117,99 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
     public void onMapReady(@NonNull @NotNull GoogleMap googleMap) {
         ArrayList<MarkerOptions> markerOptionsArrayList = new ArrayList<>();
 
+
         mMap = googleMap;
         LatLng eralp = new LatLng(38.446401, 27.217875);
 
         mMap.setMyLocationEnabled(true);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(eralp, 13f));
         getCompanies();
+        mMap.getUiSettings().setScrollGesturesEnabled(true);
+        try {
+            if(currentLocation != null){
+                fusedLocationProviderClient.getLastLocation().addOnSuccessListener(location -> currentLocation = new LatLng(location.getLatitude(), location.getLongitude()));
+            }
+        }catch (Exception e){
+            System.out.println(e);
+        }
+        mMap.setOnMarkerClickListener(marker -> {
 
+            CustomDialog alert = new CustomDialog();
+            if(currentLocation != null && taskPosition != null && marker.isFlat()) {
+                alert.showDialog(getActivity(),
+                        taskMarkerTitle,
+                        currentLocation.latitude,
+                        currentLocation.longitude,
+                        taskPosition.latitude,
+                        taskPosition.longitude,
+                        task_attr[3],
+                        task_attr[4],
+                        task_attr[5],
+                        task_attr[6]);
+            }
+           // else {Toast.makeText(getContext(), "Konuma Ulaşılamıyor.", Toast.LENGTH_SHORT).show();}
+            return false;
+        });
+        getParentFragmentManager().setFragmentResultListener("locationRequest", this, (requestKey, result) -> {
 
+            try {
+                task_attr = result.getStringArray("task_location");
+                taskMarkerTitle = task_attr[2];
+                taskPosition = new LatLng(Double.parseDouble(task_attr[0]), Double.parseDouble(task_attr[1]));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskPosition, 14f));
+                mMap.addMarker(new MarkerOptions().flat(true).position(taskPosition).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
 
+            }catch (Exception e){
+                System.out.println("error: " +e);
+            }
+
+        });
+        getTasks();
 
     }
 
     void getCompanies(){
-
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        db.collection("companies").get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+        db.collection("companies").get().addOnSuccessListener(queryDocumentSnapshots -> {
+            if(queryDocumentSnapshots.isEmpty()){
+                System.out.println("List Empty");
 
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                if(queryDocumentSnapshots.isEmpty()){
-                    System.out.println("List Empty");
+            }
+            else
+            {System.out.println("id : " + queryDocumentSnapshots.size());
 
-                }
-                else
-                {System.out.println("id : " + queryDocumentSnapshots.size());
+                for (DocumentSnapshot document: queryDocumentSnapshots) {
+                    Map<String, Double> position = (Map<String, Double>) document.get("location");
 
-                    for (DocumentSnapshot document: queryDocumentSnapshots) {
-                        Map<String, Double> position = (Map<String, Double>) document.get("location");
-
-                        mMap.addMarker(new MarkerOptions().title(document.get("name").toString()).position(new LatLng(position.get("latitude"), position.get("longitude"))));
-
-                    }
+                    mMap.addMarker(new MarkerOptions().title(document.get("name").toString()).position(new LatLng(position.get("latitude"), position.get("longitude"))));
 
                 }
-
 
             }
 
+
+        });
+
+    }
+    void getTasks(){
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("tasks").get().addOnSuccessListener(queryDocumentSnapshots -> {
+            if(queryDocumentSnapshots.isEmpty()){
+                Toast.makeText(mainActivity, "Hiç bir görev bulunamadı.", Toast.LENGTH_SHORT).show();
+            }
+            else{
+                for (DocumentSnapshot document: queryDocumentSnapshots) {
+                    double a =  Double.parseDouble(document.getData().get("latitude").toString());
+                    double b = Double.parseDouble(document.getData().get("longitude").toString());
+                    mMap.addMarker(new MarkerOptions().title(document.get("title").toString())
+                            .position(new LatLng(a,b))
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                            .flat(true));
+
+                }
+
+            }
         });
 
     }
@@ -157,7 +224,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
     }
     void addCompanyToDatabase(Location location, String companyName, String description, double rating, String meeting, String meeting_result){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference ref = db.collection("companies").document();
         String timeStamp = new SimpleDateFormat("yyyy/MM/dd  HH:mm:ss").format(Calendar.getInstance().getTime());
         Map<String, Object> docMap = new HashMap<>();
         docMap.put("user",currentUser.getUid());
@@ -181,4 +247,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
         });
 
     }
+
+
 }

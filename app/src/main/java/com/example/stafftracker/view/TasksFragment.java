@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentResultListener;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -12,30 +13,41 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.stafftracker.MainActivity;
 import com.example.stafftracker.R;
+import com.example.stafftracker.model.Company;
 import com.example.stafftracker.model.Task;
 import com.example.stafftracker.viewmodel.CompanyItemAdapter;
 import com.example.stafftracker.viewmodel.TaskItemAdapter;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link SettingFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class TasksFragment extends Fragment {
+public class TasksFragment extends Fragment implements TaskItemAdapter.ITaskLocation {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     TaskItemAdapter taskItemAdapter;
+    MainActivity mainActivity;
     RecyclerView recyclerView;
     RecyclerView.LayoutManager mLayoutManager;
     ArrayList<Task> taskArrayList = new ArrayList<>();
+    FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+    HomeFragment homeFragment = new HomeFragment();
 
 
     // TODO: Rename and change types of parameters
@@ -77,6 +89,7 @@ public class TasksFragment extends Fragment {
                 System.out.println(result.getString("key"));
             }
         });
+        mainActivity = (MainActivity) getActivity();
     }
 
 
@@ -86,10 +99,46 @@ public class TasksFragment extends Fragment {
         View v =  inflater.inflate(R.layout.fragment_tasks, container, false);
         // Inflate the layout for this fragment
         loadAdapter(v);
-
+        taskArrayList.clear();
+        mainActivity.cardView.setVisibility(View.GONE);
         return v;
     }
     void loadAdapter(View view){
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("tasks").get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if(queryDocumentSnapshots.isEmpty()){
+                    System.out.println("List Empty");
+
+                }
+                else
+                {System.out.println("id : " + queryDocumentSnapshots.size());
+
+
+                    for (int i=0; i<queryDocumentSnapshots.size(); i++){
+                        if(queryDocumentSnapshots.getDocuments().get(i).get("userId").equals(firebaseAuth.getUid())) {
+                            taskArrayList.add(new Task(
+                                    queryDocumentSnapshots.getDocuments().get(i).getData().get("id").toString(),
+                                    queryDocumentSnapshots.getDocuments().get(i).getData().get("userId").toString(),
+                                    queryDocumentSnapshots.getDocuments().get(i).getData().get("title").toString(),
+                                    (long)queryDocumentSnapshots.getDocuments().get(i).getData().get("createdAt"),
+                                    queryDocumentSnapshots.getDocuments().get(i).getData().get("description").toString(),
+                                    Integer.parseInt(queryDocumentSnapshots.getDocuments().get(i).getData().get("status").toString()),
+                                    Double.parseDouble( queryDocumentSnapshots.getDocuments().get(i).getData().get("latitude").toString()),
+                                    Double.parseDouble(  queryDocumentSnapshots.getDocuments().get(i).getData().get("longitude").toString()),
+                                    queryDocumentSnapshots.getDocuments().get(i).getData().get("staffNote").toString()
+
+                            ));
+                        }
+                        taskItemAdapter.notifyDataSetChanged();
+
+
+                    }
+
+                }
+            }
+        });
         //dString id,
         //            String userId,
         //            String title,
@@ -99,14 +148,25 @@ public class TasksFragment extends Fragment {
         //            double latitude,
         //            double longitude
 
-        taskArrayList.add(new Task("1", "task1", "başlık firması", System.currentTimeMillis(),"görüşme yapılacak", 1, 27.33,38.23));
-        taskArrayList.add(new Task("2", "task2", "başlık restoranı", System.currentTimeMillis(),"görüşme yapılacak", 2, 27.34,38.233));
 
-        taskItemAdapter = new TaskItemAdapter(getContext(),taskArrayList);
+        taskItemAdapter = new TaskItemAdapter(getContext(),taskArrayList,this );
         recyclerView = view.findViewById(R.id.task_recyclerview);
         mLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(mLayoutManager) ;
         recyclerView.setAdapter(taskItemAdapter);
     }
 
+    @Override
+    //double latitude, double longitude, String title, int status, String description, long createdAt,string TaskNote
+    public void showTaskLocation(String id,double latitude, double longitude, String title, int status, String description, long createdAt, String taskNote) {
+        Bundle result = new Bundle();
+        String[] taskLocation = {latitude+"", longitude+"", title, status +"", description, createdAt +"", taskNote, id};
+        result.putStringArray("task_location", taskLocation);
+        getParentFragmentManager().setFragmentResult("locationRequest", result);
+        getParentFragmentManager()
+                .beginTransaction()
+                .replace(R.id.flFragment, homeFragment)
+                .commit();
+
+    }
 }

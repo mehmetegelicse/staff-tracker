@@ -3,6 +3,7 @@ package com.example.stafftracker;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -31,6 +32,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
@@ -46,6 +48,7 @@ import com.example.stafftracker.utils.FirebaseService;
 import com.example.stafftracker.view.HomeFragment;
 import com.example.stafftracker.view.PersonFragment;
 import com.example.stafftracker.view.TasksFragment;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 
 import com.google.android.gms.location.LocationCallback;
@@ -56,6 +59,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.CancellationToken;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.OnTokenCanceledListener;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationBarView;
@@ -74,6 +82,7 @@ import org.jetbrains.annotations.NotNull;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -94,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     private int mMenuId;
     ArrayList<Map<String, Object>> _points = new ArrayList<>();
     ImageView imageView;
+    public CardView cardView;
 
     FirebaseService fb = new FirebaseService();
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -114,7 +124,10 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         return ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
     private boolean checkBackgroundLocation(){
-        return ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        }
+        return true;
     }
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void requestPermission(){
@@ -146,7 +159,33 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         linearLayout = findViewById(R.id.linearLayout_latlang);
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         checkUserPermission();
-       // requestPermission();
+        requestPermission();
+        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        boolean gps_enabled = false;
+        boolean network_enabled = false;
+
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch(Exception ex) {}
+
+        try {
+            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch(Exception ex) {}
+
+        if(!gps_enabled && !network_enabled) {
+            // notify user
+            new AlertDialog.Builder(this)
+                    .setMessage("GPS Kapalı")
+                    .setPositiveButton("Konum ayarları", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                        }
+                    })
+                    .setNegativeButton("iptal",null)
+                    .show();
+        }
+        cardView = findViewById(R.id.cardView);
 
         bottomNavigationView.setOnItemSelectedListener(this);
         button.setBackgroundColor(Color.GREEN);
@@ -171,6 +210,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     .setNeutralButton("Tamam",null)
                     .setIcon(android.R.drawable.ic_dialog_info)
                     .show();
+
+            startService(new Intent(getApplicationContext(), BackgroundService.class));
+
 
 
         });
@@ -241,6 +283,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         }
         System.out.println("destroyed.");
         //
+        startService(new Intent(getApplicationContext(), BackgroundService.class));
+
     }
 
     @Override
@@ -265,10 +309,11 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     }
                 });
             }
-            startService(new Intent(this, BackgroundService.class));
+            startService(new Intent(getApplicationContext(), BackgroundService.class));
         }
 
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull @NotNull String[] permissions, @NonNull @NotNull int[] grantResults) {
@@ -278,23 +323,19 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         if(grantResults[i] == PackageManager.PERMISSION_GRANTED){
                  Toast.makeText(this, permissions[i] + " Granted.", Toast.LENGTH_SHORT).show();
         }
-        else if (grantResults[i] == PackageManager.PERMISSION_DENIED){
+        else if (grantResults[i] == PackageManager.PERMISSION_DENIED  && Build.VERSION.SDK_INT> 23){
             new AlertDialog.Builder(this).setTitle(getString(R.string.need_permission_alert))
         .setMessage(getString(R.string.need_permission_content))
-        .setPositiveButton("TAMAM", new DialogInterface.OnClickListener(){
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},requestCode);
-                dialog.dismiss();
+        .setPositiveButton("TAMAM", (dialog, which) -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION },requestCode);
             }
-        }).setNegativeButton(getString(R.string.block), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
+            dialog.dismiss();
+        }).setNegativeButton(getString(R.string.block), (dialog, which) -> {
+            dialog.dismiss();
 
-                finishAffinity();
+            finishAffinity();
 
-            }
         }).create().show();}
         else{
             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
@@ -306,63 +347,66 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
             }
         }
     }
+
     private void checkUserPermission() {
-        Dexter.withContext(this)
-                .withPermissions(
-                        Manifest.permission.ACCESS_BACKGROUND_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                ).withListener(new MultiplePermissionsListener() {
-            @Override
-            public void onPermissionsChecked(MultiplePermissionsReport report) {
-                //check if all permission are granted
-                if (report.areAllPermissionsGranted()) {
-                    loadFragment(
-                            new HomeFragment()
-                    );
-                    System.out.println("granted");
-                } else {
-                    List<PermissionDeniedResponse> responses = report.getDeniedPermissionResponses();
-                    StringBuilder permissionsDenied = new StringBuilder("Permissions denied: ");
-                    for (PermissionDeniedResponse response : responses) {
-                        permissionsDenied.append(response.getPermissionName()).append(" ") ;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Dexter.withContext(this)
+                    .withPermissions(
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                    ).withListener(new MultiplePermissionsListener() {
+                @Override
+                public void onPermissionsChecked(MultiplePermissionsReport report) {
+                    //check if all permission are granted
+                    if (report.areAllPermissionsGranted()) {
+                        loadFragment(
+                                new HomeFragment()
+                        );
+                        System.out.println("granted");
+                    } else {
+                        List<PermissionDeniedResponse> responses = report.getDeniedPermissionResponses();
+                        StringBuilder permissionsDenied = new StringBuilder("Permissions denied: ");
+                        for (PermissionDeniedResponse response : responses) {
+                            permissionsDenied.append(response.getPermissionName()).append(" ") ;
+                        }
+                        Toast.makeText(MainActivity.this, permissionsDenied.toString(),Toast.LENGTH_SHORT).show();
                     }
-                    Toast.makeText(MainActivity.this, permissionsDenied.toString(),Toast.LENGTH_SHORT).show();
+
+                    if (report.isAnyPermissionPermanentlyDenied() &&   Build.VERSION.SDK_INT> 23) {
+                        //permission is permanently denied navigate to user setting
+                        AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this)
+                                .setTitle(getString(R.string.need_permission_alert))
+                                .setMessage(getString(R.string.need_permission_blocked))
+                                .setPositiveButton(getString(R.string.go_to_settings), new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.cancel();
+                                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                        Uri uri = Uri.fromParts("package", getPackageName(), null);
+                                        intent.setData(uri);
+                                        startActivityForResult(intent, 101);
+                                    }
+                                })
+                                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.cancel();
+                                    }
+                                });
+                        dialog.show();
+
+                    }
                 }
 
-                if (report.isAnyPermissionPermanentlyDenied()) {
-                    //permission is permanently denied navigate to user setting
-                    AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this)
-                            .setTitle(getString(R.string.need_permission_alert))
-                            .setMessage(getString(R.string.need_permission_blocked))
-                            .setPositiveButton(getString(R.string.go_to_settings), new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    dialogInterface.cancel();
-                                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                    Uri uri = Uri.fromParts("package", getPackageName(), null);
-                                    intent.setData(uri);
-                                    startActivityForResult(intent, 101);
-                                }
-                            })
-                            .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    dialogInterface.cancel();
-                                }
-                            });
-                    dialog.show();
-
+                @Override
+                public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                    token.continuePermissionRequest();
                 }
-            }
-
-            @Override
-            public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
-                token.continuePermissionRequest();
-            }
-        })
-                .onSameThread()
-                .check();
+            })
+                    .onSameThread()
+                    .check();
+        }
 
     }
 
@@ -418,32 +462,29 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     public CancellationToken onCanceledRequested(@NonNull @NotNull OnTokenCanceledListener onTokenCanceledListener) {
                         return null;
                     }
-                }).addOnSuccessListener(new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location1) {
+                }).addOnSuccessListener(location1 -> {
 
-                        if (location1 != null) {
-                            tv_lat.setText("Lat:   "+ new DecimalFormat("##.#######").format(location1.getLatitude()));
-                            tv_long.setText("Lng:  " + new DecimalFormat("##.#######").format(location1.getLongitude()));
-                            Map<String, Object> _point = new HashMap<>();
-                            long a = 0;
-                            System.out.println("location :" + location1.getLongitude());
-                            if(!_points.isEmpty()){
-                               a = (long) _points.get(_points.size()-1).get("time");
-                            }
-                            _point.put("latitude", location1.getLatitude());
-                            _point.put("longitude", location1.getLongitude());
-                           long b =  System.currentTimeMillis();
-                            _point.put("time", b);
-                            _points.add(_point);
-                            System.out.println(_point.get("latitude") + ","  + _point.get("longitude") + "interval:" +(b-a)/1000 + "size :" + _points.size() );
+                    if (location1 != null) {
+                        tv_lat.setText("Lat:   "+ new DecimalFormat("##.#######").format(location1.getLatitude()));
+                        tv_long.setText("Lng:  " + new DecimalFormat("##.#######").format(location1.getLongitude()));
+                        Map<String, Object> _point = new HashMap<>();
+                        long a = 0;
+                        System.out.println("location :" + location1.getLongitude());
+                        if(!_points.isEmpty()){
+                           a = (long) _points.get(_points.size()-1).get("time");
                         }
-                        if(_points.size() > MAX_ARRAY_SIZE){
-                            String timeStamp = new SimpleDateFormat("yyyy/MM/dd  HH:mm:ss").format(Calendar.getInstance().getTime());
-                            fb.pushFiles(getApplicationContext(), _points,currentUser.getUid(),timeStamp);
-                            _points.clear();
-                            toneGen1.startTone(ToneGenerator.TONE_SUP_RADIO_ACK,150);
-                        }
+                        _point.put("latitude", location1.getLatitude());
+                        _point.put("longitude", location1.getLongitude());
+                       long b =  System.currentTimeMillis();
+                        _point.put("time", b);
+                        _points.add(_point);
+                        System.out.println(_point.get("latitude") + ","  + _point.get("longitude") + "interval:" +(b-a)/1000 + "size :" + _points.size() );
+                    }
+                    if(_points.size() > MAX_ARRAY_SIZE){
+                        String timeStamp = new SimpleDateFormat("yyyy/MM/dd  HH:mm:ss").format(Calendar.getInstance().getTime());
+                        fb.pushFiles(getApplicationContext(), _points,currentUser.getUid(),timeStamp);
+                        _points.clear();
+                        toneGen1.startTone(ToneGenerator.TONE_SUP_RADIO_ACK,150);
                     }
                 });
                 mHandler.postDelayed(mStatusChecker, LOCATION_GETTING_PERIOD);

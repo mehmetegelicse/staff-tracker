@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.stafftracker.MainActivity;
 import com.example.stafftracker.R;
 import com.example.stafftracker.model.Company;
 import com.example.stafftracker.viewmodel.CompanyItemAdapter;
@@ -31,11 +32,12 @@ public class PersonFragment extends Fragment {
     ArrayList<Company> companies = new ArrayList<>();
     RecyclerView.LayoutManager mLayoutManager;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
+    MainActivity mainActivity;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        mainActivity = (MainActivity) getActivity();
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -46,6 +48,7 @@ public class PersonFragment extends Fragment {
         // Inflate the layout for this fragment
         companies.clear();
         getCompanies(view);
+        mainActivity.cardView.setVisibility(View.GONE);
         return view;
     }
     void getCompanies(View view){
