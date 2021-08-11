@@ -13,10 +13,10 @@ public class Company {
     String user;
     String description;
     String id;
-
+    String time;
     double rating;
 
-    public Company(String name,  String date,LatLng location, String user, String description, double rating, String id) {
+    public Company(String name,  String date,LatLng location, String user, String description, double rating, String id, String time) {
         this.name = name;
         this.location = location;
         this.date = date;
@@ -24,6 +24,7 @@ public class Company {
         this.description = description;
         this.rating = rating;
         this.id = id;
+        this.time = time;
 
     }
 

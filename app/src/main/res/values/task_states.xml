@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="task_states">
+        <item>Beklemede</item>
+        <item>Tamamlandı</item>
+        <item>Ertelendi</item>
+        <item>İptal Edildi</item>
+    </string-array>
+</resources>

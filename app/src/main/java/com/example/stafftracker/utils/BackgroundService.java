@@ -1,5 +1,6 @@
 package com.example.stafftracker.utils;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -8,6 +9,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.media.AudioManager;
@@ -21,6 +23,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 import com.example.stafftracker.MainActivity;
@@ -52,7 +55,8 @@ public class BackgroundService extends Service {
     final int MAX_ARRAY_SIZE = 100;
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
     private Handler mHandler;
-    boolean onLoop =  false;
+    boolean onLoop = false;
+    ArrayList<Location> hourlyPoints = new ArrayList<>();
     ToneGenerator toneGen1 = new ToneGenerator(AudioManager.STREAM_SYSTEM, 100);
 
 
@@ -66,23 +70,20 @@ public class BackgroundService extends Service {
 
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
             startMyOwnForeground();
-        else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.M){
+        else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.M) {
             startMyOwnForeground();
-        }
-        else
+        } else
             startForeground(1, new Notification());
-        if(!onLoop){
+        if (!onLoop) {
             mHandler = new Handler();
             startRepeatingTask();
-            onLoop  = !onLoop;
+            onLoop = !onLoop;
 
-        }
-        else stopRepeatingTask();
+        } else stopRepeatingTask();
     }
 
 
-    private void startMyOwnForeground()
-    {
+    private void startMyOwnForeground() {
         String NOTIFICATION_CHANNEL_ID = "example.permanence";
         String channelName = "Background Service";
         NotificationChannel chan = null;
@@ -130,9 +131,9 @@ public class BackgroundService extends Service {
     public void onDestroy() {
         super.onDestroy();
         System.out.println("background killed!");
-        if(_points.size() > 0){
+        if (_points.size() > 0) {
             String timeStamp = new SimpleDateFormat("yyyy/MM/dd  HH:mm:ss").format(Calendar.getInstance().getTime());
-            fb.pushFiles(this,_points,currentUser.getUid(),timeStamp);
+            fb.pushFiles(this, _points, currentUser.getUid(), timeStamp);
             _points.clear();
             System.out.println("locations sent.!");
         }
@@ -151,9 +152,9 @@ public class BackgroundService extends Service {
     }
 
 
-
     private Timer timer;
     private TimerTask timerTask;
+
     public void startTimer() {
         timer = new Timer();
         timerTask = new TimerTask() {
@@ -172,6 +173,7 @@ public class BackgroundService extends Service {
             timer = null;
         }
     }
+
     CancellationTokenSource cts = new CancellationTokenSource();
     Runnable mStatusChecker = new Runnable() {
         @SuppressLint("MissingPermission")
@@ -187,34 +189,71 @@ public class BackgroundService extends Service {
                         Map<String, Object> _point = new HashMap<>();
 
                         if (location != null) {
-                            if(_point.isEmpty()){
-                            _point.put("latitude", location.getLatitude());
-                            _point.put("longitude", location.getLongitude());
-                            _point.put("time", System.currentTimeMillis());
-                            }
-                            else{
+                            if (_point.isEmpty()) {
+                                _point.put("latitude", location.getLatitude());
+                                _point.put("longitude", location.getLongitude());
+                                _point.put("time", System.currentTimeMillis());
+                            } else {
                                 _point.replace("latitude", location.getLatitude());
                                 _point.replace("longitude", location.getLongitude());
                                 _point.replace("time", System.currentTimeMillis());
                             }
                             _points.add(_point);
-                            Toast.makeText(BackgroundService.this, _point.get("latitude") +","+ _point.get("longitude") +" \n"+ _points.size() , Toast.LENGTH_SHORT).show();
-                          //  Toast.makeText(getApplicationContext(), location.getLatitude() + "," + location.getLongitude(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(BackgroundService.this, _point.get("latitude") + "," + _point.get("longitude") + " \n" + _points.size(), Toast.LENGTH_SHORT).show();
+                            //  Toast.makeText(getApplicationContext(), location.getLatitude() + "," + location.getLongitude(), Toast.LENGTH_SHORT).show();
                         } else {
-                         Toast.makeText(BackgroundService.this, "Hata oluştu.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(BackgroundService.this, "Hata oluştu.", Toast.LENGTH_SHORT).show();
                         }
-                        System.out.println(_point.get("latitude") + ","  + _point.get("longitude") + "  ---> size :" + _points.size() );
+                        System.out.println(_point.get("latitude") + "," + _point.get("longitude") + "  ---> size :" + _points.size());
 
-                        if(_points.size() > MAX_ARRAY_SIZE){
+                        if (_points.size() > MAX_ARRAY_SIZE) {
                             String timeStamp = new SimpleDateFormat("yyyy/MM/dd  HH:mm:ss").format(Calendar.getInstance().getTime());
 
-                            fb.pushFiles(getApplicationContext(),_points,currentUser.getUid(),timeStamp);
-                            toneGen1.startTone(ToneGenerator.TONE_CDMA_ALERT_NETWORK_LITE,40);
+                            fb.pushFiles(getApplicationContext(), _points, currentUser.getUid(), timeStamp);
+                            toneGen1.startTone(ToneGenerator.TONE_CDMA_ALERT_NETWORK_LITE, 40);
                             _points.clear();
                         }
-                    }});
+                    }
+                });
                 mHandler.postDelayed(mStatusChecker, LOCATION_GETTING_PERIOD);
             }
+        }
+
+    };
+
+    Runnable movementChecker = new Runnable() {
+        double distance;
+        @SuppressLint("MissingPermission")
+        @Override
+        public void run() {
+            try {
+                fusedLocationClient.getCurrentLocation(PRIORITY_HIGH_ACCURACY, cts.getToken()).addOnSuccessListener(new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        hourlyPoints.add(location);
+                        Toast.makeText(BackgroundService.this, "şimdiki location :" + location.getLatitude() + ", " + location.getLongitude(),
+                                Toast.LENGTH_SHORT).show();
+
+                        if(hourlyPoints.size()>= 2){
+                            double distance = distFromMeters(hourlyPoints.get(hourlyPoints.size()-1).getLatitude(),
+                                    hourlyPoints.get(hourlyPoints.size()-1).getLongitude(),
+                                    hourlyPoints.get(hourlyPoints.size()-2).getLatitude(),
+                                    hourlyPoints.get(hourlyPoints.size()-2).getLongitude() );
+
+                            if(distance<=100){
+                                Toast.makeText(BackgroundService.this, "Son 1 saatlik hareketin: " + Math.ceil(distance) + " metre.", Toast.LENGTH_SHORT).show();
+                                fb.movementHandler(false);
+                            }
+                            else fb.movementHandler(true);
+
+                        }
+                    }
+                });
+            }catch (Exception e){
+                System.out.println(e);
+            }
+            mHandler.postDelayed(movementChecker, 1000*60*30);
+
         }
 
     };
@@ -224,12 +263,25 @@ public class BackgroundService extends Service {
         System.out.println("Service OnBind");
         return null;
     }
+    public double distFromMeters(double lat1, double lng1, double lat2, double lng2) {
+        double earthRadius = 6371000; //meters
+        double dLat = Math.toRadians(lat2-lat1);
+        double dLng = Math.toRadians(lng2-lng1);
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(dLng/2) * Math.sin(dLng/2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        float dist = (float) (earthRadius * c);
+
+        return dist;
+    }
 
     void startRepeatingTask() {
         mStatusChecker.run();
+        movementChecker.run();
     }
 
     void stopRepeatingTask() {
-        mHandler.removeCallbacks(mStatusChecker);
+      //  mHandler.removeCallbacks(mStatusChecker);
     }
 }

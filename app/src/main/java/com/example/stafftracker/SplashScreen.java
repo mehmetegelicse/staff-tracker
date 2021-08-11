@@ -41,12 +41,12 @@ public class SplashScreen extends AppCompatActivity {
         new Handler().postDelayed(new Runnable(){
             @Override
             public void run() {
-                /* Create an Intent that will start the Menu-Activity. */
+                route(mAuth.getCurrentUser() != null);
 
             }
 
         }, SPLASH_DISPLAY_LENGTH);
-        route(mAuth.getCurrentUser() != null);
+
     }
     void route(boolean auth){
         Intent intent;

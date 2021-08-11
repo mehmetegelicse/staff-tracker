@@ -18,12 +18,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.01999998">
-        <LinearLayout
 
+        <LinearLayout
+            android:id="@+id/taskLinearLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
-
 
         <TextView
             android:id="@+id/task_name"
@@ -49,14 +49,11 @@
                     android:layout_width="100dp"
                    />
 
-
                 <TextView
                     android:id="@+id/company_address_task"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="17sp"/>
-
-
+                    android:textSize="14sp"/>
 
             </TableRow>
             <TableRow>
@@ -93,11 +90,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/durum" />
-
-                <TextView
-                    android:id="@+id/task_status"
+                <Spinner
+                    android:minWidth="30dp"
+                    android:id="@+id/task_state_spinner"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
+
+
             </TableRow>
             <TableRow>
 
@@ -105,11 +104,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/task_note_on" />
-
-                <TextView
+                <EditText
                     android:id="@+id/task_note"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:paddingVertical="8dp"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:enabled="false"
+                    android:background="@null"
+                    android:inputType="textMultiLine"
+                    android:text="Name" />
             </TableRow>
         </TableLayout>
 

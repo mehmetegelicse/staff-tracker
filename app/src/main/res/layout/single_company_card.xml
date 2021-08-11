@@ -27,7 +27,7 @@
             <ImageView
                 android:id="@+id/company_image"
                 android:layout_width="102dp"
-                android:layout_height="87dp"
+                android:layout_height="71dp"
                 android:layout_margin="2dp"
                 android:src="@drawable/person_icon"
                 app:layout_constraintStart_toStartOf="parent"
@@ -47,30 +47,87 @@
                 app:layout_constraintStart_toEndOf="@+id/company_image"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:id="@+id/textView"
-                android:layout_width="wrap_content"
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_margin="8dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:text="@string/adres_on"
-
-                android:textSize="15sp"
-                app:layout_constraintBottom_toBottomOf="@+id/company_address"
-                app:layout_constraintEnd_toStartOf="@+id/company_address"
-                app:layout_constraintHorizontal_bias="0.44"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/company_address"
-                app:layout_constraintVertical_bias="1.0" />
-
-            <TextView
-                android:id="@+id/company_address"
-                android:layout_width="291dp"
-                android:layout_height="38dp"
-                android:textSize="15sp"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/company_image"
-                app:layout_constraintVertical_bias="0.0" />
+                app:layout_constraintTop_toBottomOf="@+id/card_rating_bar">
+
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/textView"
+                        android:text="@string/adres_on"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/company_address"
+                        android:layout_height="wrap_content"
+                        android:textSize="15sp"
+                      />
+                </TableRow>
+
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/textView2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/company_aciklama"
+                        android:textSize="15sp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginRight="8dp" />
+                    <TextView
+                        android:id="@+id/company_description"
+                        android:layout_width="293dp"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                  />
+
+
+                </TableRow>
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/textView_Time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/zaman"
+                        android:textSize="15sp" />
+                    <TextView
+                        android:id="@+id/c_cretated_time_adapter"
+                        android:layout_width="293dp"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        />
+
+
+                </TableRow>
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/tv_result"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/result"
+                        android:textSize="15sp" />
+                    <TextView
+                        android:id="@+id/c_metting_result"
+                        android:layout_width="293dp"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        />
+
+
+                </TableRow>
+
+
+
+            </TableLayout>
+
+
+
 
             <me.zhanghai.android.materialratingbar.MaterialRatingBar
                 android:id="@+id/card_rating_bar"
@@ -84,30 +141,7 @@
                 app:layout_constraintStart_toEndOf="@+id/company_image"
                 app:layout_constraintTop_toBottomOf="@+id/company_name" />
 
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/company_aciklama"
 
-                android:textSize="15sp"
-                app:layout_constraintBottom_toBottomOf="@+id/company_description"
-                app:layout_constraintEnd_toStartOf="@+id/company_description"
-                app:layout_constraintHorizontal_bias="0.509"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/company_address" />
-
-            <TextView
-                android:id="@+id/company_description"
-                android:layout_width="293dp"
-                android:layout_height="24dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="10dp"
-                android:textSize="15sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="@+id/company_address"
-                app:layout_constraintTop_toBottomOf="@+id/company_address" />
 
             <Button
                 android:id="@+id/remove_company"

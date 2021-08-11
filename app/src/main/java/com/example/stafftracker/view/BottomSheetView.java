@@ -226,9 +226,13 @@ public class BottomSheetView extends BottomSheetDialogFragment {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if (addresses != null)
-                textView_street.setText("Adres: " + addresses.get(0).getThoroughfare() +","+ addresses.get(0).getSubThoroughfare() +" "+ addresses.get(0).getSubLocality() +","+ addresses.get(0).getSubAdminArea());
-                textView_city.setText(addresses.get(0).getAdminArea() +"/" + addresses.get(0).getCountryName() );
+            if (addresses != null) {
+                textView_street.setText("Adres: " + addresses.get(0).getThoroughfare() + "," + addresses.get(0).getSubThoroughfare() + " " + addresses.get(0).getSubLocality() + "," + addresses.get(0).getSubAdminArea());
+                textView_city.setText(addresses.get(0).getAdminArea() + "/" + addresses.get(0).getCountryName());
+            }else{
+                textView_city.setText("---");
+                textView_street.setText("---");
+            }
         }
 
     }

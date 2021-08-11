@@ -81,6 +81,7 @@ public class CompanyItemAdapter extends RecyclerView.Adapter<CompanyItemAdapter.
        holder.getMaterialRatingBar().setRating((float) companyArrayList.get(position).getRating());
        holder.getCompanyDesc().setText(companyArrayList.get(position).getDescription());
        holder.getRemoveButton().setOnClickListener(v -> removeItem(ctx, companyArrayList.get(position).getID(), position).show());
+       holder.getCompanyCreatedTime().setText(companyArrayList.get(position).getDate());
 
     }
 
@@ -91,7 +92,7 @@ public class CompanyItemAdapter extends RecyclerView.Adapter<CompanyItemAdapter.
 
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView companyAddress, companyDesc, companyName;
+        TextView companyAddress, companyDesc, companyName, companyCreatedTime;
 
         public Button getRemoveButton() {
             return removeButton;
@@ -112,6 +113,10 @@ public class CompanyItemAdapter extends RecyclerView.Adapter<CompanyItemAdapter.
             return companyName;
         }
 
+        public TextView getCompanyCreatedTime() {
+            return companyCreatedTime;
+        }
+
         public MaterialRatingBar getMaterialRatingBar() {
             return materialRatingBar;
         }
@@ -128,6 +133,7 @@ public class CompanyItemAdapter extends RecyclerView.Adapter<CompanyItemAdapter.
             companyAddress = view.findViewById(R.id.company_address);
             removeButton = view.findViewById(R.id.remove_company);
             materialRatingBar.setEnabled(false);
+            companyCreatedTime = view.findViewById(R.id.c_cretated_time_adapter);
 
 
 

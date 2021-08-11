@@ -8,8 +8,12 @@ import android.location.Geocoder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,7 +48,9 @@ public class TaskItemAdapter extends RecyclerView.Adapter<TaskItemAdapter.ViewHo
     Geocoder gcd;
     List<Address> addresses = new ArrayList<>();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
-
+    Boolean editMode = false;
+    boolean spinner_selected= false;
+    int spinner_position;
 
 
     public TaskItemAdapter(Context context, ArrayList<Task> tasks, ITaskLocation callback) {
@@ -89,16 +95,23 @@ public class TaskItemAdapter extends RecyclerView.Adapter<TaskItemAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull @NotNull TaskItemAdapter.ViewHolder holder, int position) {
-
+        long time = tasks.get(position).getCreated();
         holder.getTaskName().setText(tasks.get(position).getTitle());
         holder.getAddress().setText(getAddressFromLocation( new LatLng(tasks.get(position).getLatitude(), tasks.get(position).getLongitude()), ctx));
         holder.getDescription().setText(tasks.get(position).getDescription());
-        holder.getTime().setText(DateFormat.getDateInstance(DateFormat.SHORT).format(tasks.get(position).getCreated()));
-        holder.getStatus().setText(taskStatusMapper(tasks.get(position).getStatus()));
+        holder.getTime().setText(DateFormat.getDateInstance(DateFormat.SHORT).format(time));
         holder.getAddNote().setOnClickListener(v -> {
-
         });
+
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(ctx, R.array.task_states, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        holder.getSpinner().setAdapter(adapter);
+        holder.getSpinner().setEnabled(false);
+        holder.getSpinner().setSelection(tasks.get(position).getStatus());
         holder.getTaskNote().setText(tasks.get(position).getStaffNote());
+        if(tasks.get(position).getStatus() == 2){
+            holder.getLinearLayout().setBackgroundResource(android.R.color.background_dark);
+        }
         holder.getShowLocation().setOnClickListener(v ->
                 mCallback.showTaskLocation( tasks.get(position).getId(),
                                             tasks.get(position).getLatitude(),
@@ -108,8 +121,60 @@ public class TaskItemAdapter extends RecyclerView.Adapter<TaskItemAdapter.ViewHo
                                             tasks.get(position).getDescription(),
                                             tasks.get(position).getCreated(),
                                             tasks.get(position).getStaffNote()));
+        holder.getSpinner().setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                spinner_selected = true;
+                spinner_position = position;
+                System.out.println(spinner_position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                spinner_selected = false;
+            }
+        });
         holder.getAddNote().setOnClickListener(v -> {
-            final EditText taskEditText = new EditText(ctx);
+            if(!editMode) {
+                holder.getAddNote().setText("Kaydet");
+                holder.getTaskNote().setEnabled(true);
+                holder.getSpinner().setEnabled(true);
+                holder.linearLayout.setBackgroundResource(android.R.color.holo_purple);
+                holder.getTaskNote().setBackgroundResource(android.R.color.darker_gray);
+                editMode = !editMode;
+            }else{
+                try {
+                    if(!holder.getTaskNote().getText().toString().isEmpty()) {
+                        db.collection("tasks").document(tasks.get(position).getId()).
+                                update("staffNote", holder.getTaskNote().getText().toString()).
+                                addOnSuccessListener(unused -> {
+                                    tasks.get(position).setStaffNote(holder.getTaskNote().getText().toString());
+                                });
+                    }
+                    System.out.println(spinner_selected);
+                    if(spinner_selected) {
+                        db.collection("tasks").document(tasks.get(position).getId()).
+                                update("status", spinner_position).
+                                addOnSuccessListener(unused -> {
+                                    tasks.get(position).setStatus(spinner_position);
+                                    holder.getSpinner().setSelection(spinner_position);
+
+                                });
+                    }
+
+                }catch (Exception e){
+                    System.out.println("update error : " + e);
+                }
+                holder.getAddNote().setText(ctx.getResources().getString(R.string.not_ekle));
+                holder.getTaskNote().setBackground(null);
+                holder.getTaskNote().setEnabled(false);
+                holder.getSpinner().setEnabled(false);
+                holder.linearLayout.setBackgroundResource(android.R.color.white);
+                editMode = !editMode;
+
+
+            }
+           /* final EditText taskEditText = new EditText(ctx);
             AlertDialog dialog = new AlertDialog.Builder(ctx)
                     .setTitle(tasks.get(position).getTitle())
                     .setMessage("Göreve Açıklama Ekle")
@@ -131,7 +196,10 @@ public class TaskItemAdapter extends RecyclerView.Adapter<TaskItemAdapter.ViewHo
                     .setNegativeButton("Cancel", null)
                     .create();
             dialog.show();
+            */
+
         });
+
     }
     String taskStatusMapper(int status){
         String task_status = "";
@@ -160,12 +228,17 @@ public class TaskItemAdapter extends RecyclerView.Adapter<TaskItemAdapter.ViewHo
         TextView title;
         TextView address;
         TextView time;
-        TextView status;
         TextView description;
-        TextView taskNote;
+        EditText taskNote;
+        Spinner spinner;
+        LinearLayout linearLayout;
 
-        public TextView getTaskNote() {
+        public EditText getTaskNote() {
             return taskNote;
+        }
+
+        public LinearLayout getLinearLayout() {
+            return linearLayout;
         }
 
         Button addNote, showLocation;
@@ -195,8 +268,8 @@ public class TaskItemAdapter extends RecyclerView.Adapter<TaskItemAdapter.ViewHo
             return time;
         }
 
-        public TextView getStatus() {
-            return status;
+        public Spinner getSpinner() {
+            return spinner;
         }
 
         public TextView getDescription() {
@@ -213,11 +286,11 @@ public class TaskItemAdapter extends RecyclerView.Adapter<TaskItemAdapter.ViewHo
     time = view.findViewById(R.id.task_created_time);
     description = view.findViewById(R.id.task_description);
     address = view.findViewById(R.id.company_address_task);
-    status = view.findViewById(R.id.task_status);
     addNote = view.findViewById(R.id.add_note);
     showLocation = view.findViewById(R.id.location_button);
     taskNote = view.findViewById(R.id.task_note);
-
+    spinner = view.findViewById(R.id.task_state_spinner);
+    linearLayout = view.findViewById(R.id.taskLinearLayout);
 
         }
 
@@ -233,6 +306,7 @@ public class TaskItemAdapter extends RecyclerView.Adapter<TaskItemAdapter.ViewHo
             ).create();
         return alertDialog;
     }
+
 
 
 

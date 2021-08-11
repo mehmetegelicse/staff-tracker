@@ -21,7 +21,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 
 import android.graphics.Color;
-import android.location.Location;
+
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
@@ -32,23 +32,22 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.stafftracker.model.Company;
+import com.example.stafftracker.model.Task;
 import com.example.stafftracker.utils.BackgroundService;
 import com.example.stafftracker.utils.FirebaseService;
 import com.example.stafftracker.view.HomeFragment;
 import com.example.stafftracker.view.PersonFragment;
 import com.example.stafftracker.view.TasksFragment;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 
 import com.google.android.gms.location.LocationCallback;
@@ -59,17 +58,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.CancellationToken;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.OnTokenCanceledListener;
-import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.net.PlacesClient;
-import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
-import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -82,7 +78,7 @@ import org.jetbrains.annotations.NotNull;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -94,19 +90,33 @@ import static com.google.android.gms.location.LocationRequest.PRIORITY_BALANCED_
 
 public class MainActivity extends AppCompatActivity implements NavigationBarView.OnItemSelectedListener {
     final private int REQUEST_CODE_ASK_PERMISSIONS = 1;
-    HomeFragment homeFragment = new HomeFragment();
-    PersonFragment personFragment = new PersonFragment();
-    TasksFragment tasksFragment = new TasksFragment();
-    BottomNavigationView bottomNavigationView;
+    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    public HomeFragment homeFragment;
+    PersonFragment personFragment;
+    TasksFragment tasksFragment;
+
+    public BottomNavigationView getBottomNavigationView() {
+        return bottomNavigationView;
+    }
+
+    public BottomNavigationView bottomNavigationView;
     FirebaseAuth mauth = FirebaseAuth.getInstance();
     public FloatingActionButton button;
     private int mMenuId;
+
     ArrayList<Map<String, Object>> _points = new ArrayList<>();
     ImageView imageView;
     public CardView cardView;
 
+    public ArrayList<Task> getTasks() {
+        return tasks;
+    }
+
+    public void setTasks(ArrayList<Task> tasks) {
+        this.tasks = tasks;
+    }
+
     FirebaseService fb = new FirebaseService();
-    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
     FusedLocationProviderClient fusedLocationClient;
     final int LOCATION_GETTING_PERIOD = 5000;  // 5 seconds
     final int MAX_ARRAY_SIZE = 200;
@@ -116,9 +126,18 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     SwitchMaterial switchMaterial;
     TextView tv_lat, tv_long;
     ToneGenerator toneGen1 = new ToneGenerator(AudioManager.STREAM_SYSTEM, 100);
+    public ArrayList<Task> tasks;
+    public ArrayList<Company> companies;
+    boolean gps_enabled = false;
+    boolean network_enabled = false;
 
+    public ArrayList<Company> getCompanies() {
+        return companies;
+    }
 
-
+    public void setCompanies(ArrayList<Company> companies) {
+        this.companies = companies;
+    }
 
     private boolean checkCoarseLocation(){
         return ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
@@ -147,11 +166,14 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
+        tasksFragment = new TasksFragment();
+        homeFragment = new HomeFragment();
+        personFragment = new PersonFragment();
         imageView = findViewById(R.id.image);
         button = findViewById(R.id.button);
         tv_lat = findViewById(R.id.tv_latitude);
@@ -160,9 +182,11 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         checkUserPermission();
         requestPermission();
+
         LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        boolean gps_enabled = false;
-        boolean network_enabled = false;
+
+
+
 
         try {
             gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
@@ -188,6 +212,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         cardView = findViewById(R.id.cardView);
 
         bottomNavigationView.setOnItemSelectedListener(this);
+        int menuItemId = bottomNavigationView.getMenu().getItem(3).getItemId();
         button.setBackgroundColor(Color.GREEN);
         button.setOnClickListener(v ->{
             System.out.println(onLoop);
@@ -216,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
 
         });
-        statusCheck(this);
+    //    statusCheck(this);
 
     }
     @Override
@@ -243,32 +268,17 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
     private boolean loadFragment(Fragment fragment) {
         //switching fragment
-        if (fragment != null) {
+
+        if (fragment != null && gps_enabled && network_enabled) {
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.flFragment, fragment)
                     .commit();
             return true;
         }
+        Toast.makeText(this, getResources().getString(R.string.check_gps_internet), Toast.LENGTH_SHORT).show();
         return false;
     }
-
-
-
-    public boolean checkLocationPermission() {
-        if (ActivityCompat.checkSelfPermission(getApplicationContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(getApplicationContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-        && ActivityCompat.checkSelfPermission(getApplicationContext(),
-                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION }, 1);
-            }
-        } else return true;
-        return false;
-    }
-
 
 
     @Override
@@ -326,7 +336,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         else if (grantResults[i] == PackageManager.PERMISSION_DENIED  && Build.VERSION.SDK_INT> 23){
             new AlertDialog.Builder(this).setTitle(getString(R.string.need_permission_alert))
         .setMessage(getString(R.string.need_permission_content))
-        .setPositiveButton("TAMAM", (dialog, which) -> {
+        .setPositiveButton(getResources().getString(R.string.ok), (dialog, which) -> {
+            
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION },requestCode);
             }
@@ -373,27 +384,19 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                         Toast.makeText(MainActivity.this, permissionsDenied.toString(),Toast.LENGTH_SHORT).show();
                     }
 
-                    if (report.isAnyPermissionPermanentlyDenied() &&   Build.VERSION.SDK_INT> 23) {
+                    if (report.isAnyPermissionPermanentlyDenied()  &&   Build.VERSION.SDK_INT> 23) {
                         //permission is permanently denied navigate to user setting
                         AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this)
                                 .setTitle(getString(R.string.need_permission_alert))
                                 .setMessage(getString(R.string.need_permission_blocked))
-                                .setPositiveButton(getString(R.string.go_to_settings), new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        dialogInterface.cancel();
-                                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                        Uri uri = Uri.fromParts("package", getPackageName(), null);
-                                        intent.setData(uri);
-                                        startActivityForResult(intent, 101);
-                                    }
+                                .setPositiveButton(getString(R.string.go_to_settings), (dialogInterface, i) -> {
+                                    dialogInterface.cancel();
+                                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                                    intent.setData(uri);
+                                    startActivityForResult(intent, 101);
                                 })
-                                .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        dialogInterface.cancel();
-                                    }
-                                });
+                                .setNegativeButton("CANCEL", (dialogInterface, i) -> dialogInterface.cancel());
                         dialog.show();
 
                     }
@@ -511,6 +514,8 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         }
 
     }
+
+
 
     void animate(boolean track){
 

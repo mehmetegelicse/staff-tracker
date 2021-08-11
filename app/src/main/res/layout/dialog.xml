@@ -6,13 +6,10 @@
     android:layout_height="200dp"
     android:background="#ffffffff">
 
-
     <TextView
         android:id="@+id/text_dialog"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:gravity="center_horizontal"
         android:text="title"
         android:textColor="#ff000000"
         android:textSize="18sp"
@@ -20,10 +17,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+
     <TableLayout
-        android:layout_marginHorizontal="8dp"
+        android:id="@+id/tableLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
         app:layout_constraintBottom_toTopOf="@+id/btn_dialog"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -34,8 +33,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/zaman"
-                android:width="100dp"/>
+                android:width="100dp"
+                android:text="@string/zaman" />
 
             <TextView
                 android:id="@+id/created_time_dialog"
@@ -43,6 +42,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/zaman" />
         </TableRow>
+
         <TableRow>
 
             <TextView
@@ -56,6 +56,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/zaman" />
         </TableRow>
+
         <TableRow>
 
             <TextView
@@ -63,12 +64,20 @@
                 android:layout_height="wrap_content"
                 android:text="@string/durum" />
 
-            <TextView
-                android:id="@+id/dialog_status"
+            <Spinner
+                android:minWidth="30dp"
+                android:id="@+id/task_state_spinner_alert"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <ImageView
+                android:layout_gravity="end|bottom"
+                android:contentDescription="@null"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/zaman" />
+                android:src="@drawable/arrow_bottom"
+                />
         </TableRow>
+
         <TableRow>
 
             <TextView
@@ -78,19 +87,20 @@
 
             <TextView
                 android:id="@+id/dialog_task_note"
+                android:layout_marginRight="8dp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
+
         </TableRow>
     </TableLayout>
 
 
     <Button
         android:id="@+id/btn_dialog"
-        android:layout_marginHorizontal="8dp"
         android:layout_width="110dp"
         android:layout_height="30dp"
-        android:layout_below="@+id/text_dialog"
         android:layout_centerHorizontal="true"
+        android:layout_marginHorizontal="8dp"
         android:layout_marginBottom="4dp"
         android:background="@color/purple_500"
         android:gravity="center_vertical|center_horizontal"
@@ -104,7 +114,6 @@
         android:id="@+id/direction_button"
         android:layout_width="110dp"
         android:layout_height="30dp"
-        android:layout_below="@+id/text_dialog"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginBottom="4dp"
@@ -114,13 +123,14 @@
         android:textAllCaps="false"
         android:textColor="#ffffffff"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btn_dialog" />
 
     <Button
         android:id="@+id/street_view_button"
         android:layout_width="110dp"
         android:layout_height="30dp"
-        android:layout_below="@+id/text_dialog"
+
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginBottom="4dp"
@@ -130,7 +140,9 @@
         android:textAllCaps="false"
         android:textColor="#ffffffff"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tableLayout"
+        app:layout_constraintVertical_bias="1.0" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

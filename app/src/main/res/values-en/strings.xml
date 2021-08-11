@@ -43,6 +43,7 @@
     <string name="street_view">Sokak Gürünümü</string>
     <string name="draw_route">Rota Çiz</string>
     <string name="ok">Tamam</string>
+    <string name="result">Sonuç :</string>
 
 
 </resources>

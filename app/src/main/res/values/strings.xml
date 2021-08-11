@@ -40,11 +40,13 @@
     <string name="durum">Durum :</string>
     <string name="aciklama">Açıklama :</string>
     <string name="task_location_button">Haritada Göster</string>
-    <string name="not_ekle">Not Ekle</string>
+    <string name="not_ekle">Düzenle</string>
     <string name="street_view">Sokak Gürünümü</string>
     <string name="draw_route">Rota Çiz</string>
     <string name="ok">Tamam</string>
     <string name="task_note_on">Görev Notu :</string>
     <string name="api_key" translatable="false">AIzaSyDYlBytkLbdxBm0GkzKmvP5Ikrp03kNiNg</string>
+    <string name="result">Sonuç :</string>
+    <string name="check_gps_internet">Lütfen İnternet ve Konum ayarlarınızı kontrol ediniz.</string>
 
 </resources>

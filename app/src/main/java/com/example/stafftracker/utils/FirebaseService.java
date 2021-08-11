@@ -1,22 +1,26 @@
 package com.example.stafftracker.utils;
 
+import android.app.Activity;
+import android.app.usage.NetworkStats;
 import android.content.Context;
+import android.location.Location;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
 import com.example.stafftracker.MainActivity;
+import com.example.stafftracker.model.Task;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.WriteBatch;
 
@@ -33,6 +37,7 @@ import java.util.Objects;
 import static android.content.ContentValues.TAG;
 
 public class FirebaseService {
+    private static FirebaseAuth currentUserStatic = FirebaseAuth.getInstance();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     String TAG ="firebase";
     CollectionReference colRef = db.collection("User");
@@ -87,5 +92,48 @@ public class FirebaseService {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection(collection).document(id).delete();
     }
+    public static ArrayList<Task> fetchTasks(){
+        ArrayList<com.example.stafftracker.model.Task> taskArrayList = new ArrayList<>();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("tasks").get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (int i = 0; i < queryDocumentSnapshots.size(); i++) {
+                    com.example.stafftracker.model.Task task = queryDocumentSnapshots.getDocuments().get(i).toObject(Task.class);
+                    taskArrayList.add(task);
+                }
+            }
+        });
+        return taskArrayList;
+    }
+    public static void addCompanyToDatabase(Location location, String companyName, String description, double rating, String meeting, String meeting_result, Activity activity){
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String timeStamp = new SimpleDateFormat("yyyy/MM/dd  HH:mm:ss").format(Calendar.getInstance().getTime());
+        Map<String, Object> docMap = new HashMap<>();
+        docMap.put("user",currentUserStatic.getUid());
+        docMap.put("date",timeStamp);
+        docMap.put("location", new LatLng(location.getLatitude(), location.getLongitude()));
+        docMap.put("name", companyName);
+        docMap.put("rating", rating);
+        docMap.put("description", description);
+        docMap.put("millisTime", System.currentTimeMillis());
+        docMap.put("meeting", meeting);
+        docMap.put("meeting_result", meeting_result);
 
+        db.collection("companies").add(docMap).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+                Toast.makeText(activity, companyName +" başarıyla eklendi. "
+                        + documentReference.getId(), Toast.LENGTH_SHORT).show();
+                db.collection("companies").document(documentReference.getId()).update("id", documentReference.getId());
+
+            }
+        });
+
+    }
+
+    public void movementHandler(boolean isMoving) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("user").document(currentUser.getUid()).update("isMoving", isMoving);
+    }
 }

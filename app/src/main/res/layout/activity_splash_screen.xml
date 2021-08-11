@@ -11,22 +11,5 @@
          is needed to present your content, e.g. VideoView, SurfaceView,
          TextureView, etc. -->
 
-    <LinearLayout
-        android:orientation="vertical" android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:background="@drawable/gradient_card">
-
-        <ImageView android:id="@+id/splashscreen" android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:src="@drawable/logo"
-            android:layout_gravity="center"/>
-
-        <TextView android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:text="@string/sales_tracker"/>
-
-    </LinearLayout>
 
 </FrameLayout>

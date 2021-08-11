@@ -49,6 +49,7 @@ public class PersonFragment extends Fragment {
         companies.clear();
         getCompanies(view);
         mainActivity.cardView.setVisibility(View.GONE);
+
         return view;
     }
     void getCompanies(View view){
@@ -75,7 +76,9 @@ public class PersonFragment extends Fragment {
                                   queryDocumentSnapshots.getDocuments().get(i).getData().get("user").toString(),
                                   queryDocumentSnapshots.getDocuments().get(i).getData().get("description").toString(),
                                   (Double) queryDocumentSnapshots.getDocuments().get(i).getData().get("rating"),
-                                  queryDocumentSnapshots.getDocuments().get(i).getData().get("id").toString())
+                                  queryDocumentSnapshots.getDocuments().get(i).getData().get("id").toString(),
+                                  queryDocumentSnapshots.getDocuments().get(i).getData().get("date").toString())
+
                           );
                       }
                       adapter.notifyDataSetChanged();

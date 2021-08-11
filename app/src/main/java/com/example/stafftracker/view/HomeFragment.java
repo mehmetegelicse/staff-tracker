@@ -2,11 +2,10 @@ package com.example.stafftracker.view;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,43 +15,39 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentResultListener;
 
 import com.example.stafftracker.MainActivity;
 import com.example.stafftracker.R;
+import com.example.stafftracker.model.CompanyModel;
+import com.example.stafftracker.model.Task;
 import com.example.stafftracker.utils.CustomDialog;
-import com.google.android.gms.common.api.Status;
+import com.example.stafftracker.utils.FirebaseService;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.net.PlacesClient;
-import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
-import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+
 import org.jetbrains.annotations.NotNull;
-import java.text.SimpleDateFormat;
+
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 
@@ -64,11 +59,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
     FloatingActionButton floatingActionButton;
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
     LatLng currentLocation;
-    LatLng taskPosition;
-    String taskMarkerTitle = "";
     String[] task_attr = new String[8];
-
-
+    ArrayList<CompanyModel> companyModelList = new ArrayList<>();
 
 
     @Nullable
@@ -76,7 +68,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
     public View onCreateView(LayoutInflater inflater, ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         mainActivity = (MainActivity) getActivity();
-        View view =  inflater.inflate(R.layout.fragment_first,null, false);
+        View view = inflater.inflate(R.layout.fragment_first, null, false);
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -91,7 +83,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
 
     }
 
-    private void getlocation(){
+    private void getlocation() {
         if (ActivityCompat.checkSelfPermission(getContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -103,7 +95,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
                         // Got last known location. In some rare situations this can be null.
                         if (location != null) {
                             bottomSheetView = new BottomSheetView(location);
-                            bottomSheetView.show(getChildFragmentManager(), "bottomsheet" );
+                            bottomSheetView.show(getChildFragmentManager(), "bottomsheet");
 
                         }
                     });
@@ -111,8 +103,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
         }
     }
 
-
-    @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(@NonNull @NotNull GoogleMap googleMap) {
         ArrayList<MarkerOptions> markerOptionsArrayList = new ArrayList<>();
@@ -121,132 +111,154 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
         mMap = googleMap;
         LatLng eralp = new LatLng(38.446401, 27.217875);
 
+        if (ActivityCompat.checkSelfPermission(getContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         mMap.setMyLocationEnabled(true);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(eralp, 13f));
-        getCompanies();
+        fetchSavedCompanies();
+        fetchTasks();
         mMap.getUiSettings().setScrollGesturesEnabled(true);
         try {
-            if(currentLocation != null){
+            if(currentLocation == null){
                 fusedLocationProviderClient.getLastLocation().addOnSuccessListener(location -> currentLocation = new LatLng(location.getLatitude(), location.getLongitude()));
             }
         }catch (Exception e){
             System.out.println(e);
         }
-        mMap.setOnMarkerClickListener(marker -> {
 
+        mMap.setOnMarkerClickListener(marker -> {
+            ArrayList<Task> tasks =  new ArrayList<>();
+            tasks = mainActivity.getTasks();
             CustomDialog alert = new CustomDialog();
-            if(currentLocation != null && taskPosition != null && marker.isFlat()) {
-                alert.showDialog(getActivity(),
-                        taskMarkerTitle,
-                        currentLocation.latitude,
-                        currentLocation.longitude,
-                        taskPosition.latitude,
-                        taskPosition.longitude,
-                        task_attr[3],
-                        task_attr[4],
-                        task_attr[5],
-                        task_attr[6]);
+            if(currentLocation != null && marker.isFlat()) {
+                for (int i = 0; i < tasks.size(); i++) {
+                    if(!tasks.isEmpty()){
+                        if(marker.getPosition().latitude == tasks.get(i).getLatitude() &&
+                                marker.getPosition().longitude == tasks.get(i).getLongitude()){
+                            alert.showDialog(getActivity(),
+                                    tasks.get(i).getTitle(),
+                                    currentLocation.latitude,
+                                    currentLocation.longitude,
+                                    marker.getPosition().latitude,
+                                    marker.getPosition().longitude,
+                                    tasks.get(i).getStatus(),
+                                    tasks.get(i).getDescription(),
+                                    tasks.get(i).getCreated(),
+                                    tasks.get(i).getStaffNote());
+                        }
+                    }
+                }
+
             }
-           // else {Toast.makeText(getContext(), "Konuma Ulaşılamıyor.", Toast.LENGTH_SHORT).show();}
             return false;
         });
-        getParentFragmentManager().setFragmentResultListener("locationRequest", this, (requestKey, result) -> {
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mainActivity.getBottomNavigationView().setBackground(mainActivity.getDrawable(R.drawable.gradient_card));
+        }
+        getParentFragmentManager().setFragmentResultListener("locationRequest",this, (requestKey, result) ->
+        {
             try {
                 task_attr = result.getStringArray("task_location");
-                taskMarkerTitle = task_attr[2];
-                taskPosition = new LatLng(Double.parseDouble(task_attr[0]), Double.parseDouble(task_attr[1]));
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskPosition, 14f));
-                mMap.addMarker(new MarkerOptions().flat(true).position(taskPosition).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
-
+                LatLng taskPosition = new LatLng(Double.parseDouble(task_attr[0]), Double.parseDouble(task_attr[1]));
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskPosition,14f));
             }catch (Exception e){
-                System.out.println("error: " +e);
+                System.out.println(".onMapReady" + e);
             }
-
-        });
-        getTasks();
-
+        }      );
     }
-
-    void getCompanies(){
+    void fetchSavedCompanies(){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("companies")
+                .orderBy("date",Query.Direction.DESCENDING)
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                if(queryDocumentSnapshots.isEmpty()){
+                    Toast.makeText(getContext(), "Kaydedilmiş Yer Yok.", Toast.LENGTH_SHORT).show();
+                }
+                for (DocumentSnapshot snapshot:queryDocumentSnapshots
+                     ) {
+                   companyModelList = (ArrayList<CompanyModel>) queryDocumentSnapshots.toObjects(CompanyModel.class);
 
-        db.collection("companies").get().addOnSuccessListener(queryDocumentSnapshots -> {
-            if(queryDocumentSnapshots.isEmpty()){
-                System.out.println("List Empty");
-
-            }
-            else
-            {System.out.println("id : " + queryDocumentSnapshots.size());
-
-                for (DocumentSnapshot document: queryDocumentSnapshots) {
-                    Map<String, Double> position = (Map<String, Double>) document.get("location");
-
-                    mMap.addMarker(new MarkerOptions().title(document.get("name").toString()).position(new LatLng(position.get("latitude"), position.get("longitude"))));
 
                 }
+                for (int i = 0; i < companyModelList.size(); i++) {
+                    if (companyModelList.get(i).getUser().equals(currentUser.getUid())){
 
-            }
+                        companyModelList.remove(i);
 
-
-        });
-
-    }
-    void getTasks(){
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("tasks").get().addOnSuccessListener(queryDocumentSnapshots -> {
-            if(queryDocumentSnapshots.isEmpty()){
-                Toast.makeText(mainActivity, "Hiç bir görev bulunamadı.", Toast.LENGTH_SHORT).show();
-            }
-            else{
-                for (DocumentSnapshot document: queryDocumentSnapshots) {
-                    double a =  Double.parseDouble(document.getData().get("latitude").toString());
-                    double b = Double.parseDouble(document.getData().get("longitude").toString());
-                    mMap.addMarker(new MarkerOptions().title(document.get("title").toString())
-                            .position(new LatLng(a,b))
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-                            .flat(true));
+                    }
+                }
+                for (int i = 0; i < companyModelList.size(); i++) {
+                    mMap.addMarker(new MarkerOptions().title(companyModelList.get(i).getName())
+                            .position(new LatLng(companyModelList.get(i).getLocation().get("latitude"), companyModelList.get(i).getLocation().get("longitude"))));
 
                 }
-
             }
         });
 
     }
 
+    public ArrayList<Task> fetchTasks(){
+        ArrayList<Task> taskArrayList = new ArrayList<>();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("tasks").
+                orderBy("createdAt", Query.Direction.DESCENDING)
+                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (int i = 0; i < queryDocumentSnapshots.size(); i++) {
+                    com.example.stafftracker.model.Task task = queryDocumentSnapshots.getDocuments().get(i).toObject(Task.class);
+                    if(task.getUserId().equals(currentUser.getUid())) {
+                        task.setCreated((long) queryDocumentSnapshots.getDocuments().get(i).get("createdAt"));
+                        taskArrayList.add(task);
 
+                    }
+                    double a = task.getLatitude();
+                    double b = task.getLongitude();
+                    try {
+                        if(task.getUserId().equals(currentUser.getUid())) {
+                            if (task.getStatus() == 1) {
+                                mMap.addMarker(new MarkerOptions().title(task.getTitle())
+                                        .position(new LatLng(a, b))
+                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                                        .flat(true));
+                            }
+                            mMap.addMarker(new MarkerOptions().title(task.getTitle())
+                                    .position(new LatLng(a, b))
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                                    .flat(true));
+
+                        }
+                    }catch (Exception e){
+                        System.out.printf("hata : "+ e);
+                    }
+                }
+                mainActivity.setTasks(taskArrayList);
+                mainActivity.getBottomNavigationView().getOrCreateBadge(R.id.tasks).setNumber(taskArrayList.size());
+            }
+        });
+        return taskArrayList;
+    }
     @Override
     public void onButtonClicked(Location location, String text, String description, double rating, String meeting, String meeting_result) {
         LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
         mMap.addMarker(new MarkerOptions().position(latLng).title(text).icon(BitmapDescriptorFactory
                 .defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-        addCompanyToDatabase(location,text, description, rating, meeting, meeting_result);
+        FirebaseService.addCompanyToDatabase(location,text, description, rating, meeting, meeting_result,getActivity());
     }
-    void addCompanyToDatabase(Location location, String companyName, String description, double rating, String meeting, String meeting_result){
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String timeStamp = new SimpleDateFormat("yyyy/MM/dd  HH:mm:ss").format(Calendar.getInstance().getTime());
-        Map<String, Object> docMap = new HashMap<>();
-        docMap.put("user",currentUser.getUid());
-        docMap.put("date",timeStamp);
-        docMap.put("location", new LatLng(location.getLatitude(), location.getLongitude()));
-        docMap.put("name", companyName);
-        docMap.put("rating", rating);
-        docMap.put("description", description);
-        docMap.put("millisTime", System.currentTimeMillis());
-        docMap.put("meeting", meeting);
-        docMap.put("meeting_result", meeting_result);
 
-        db.collection("companies").add(docMap).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-            @Override
-            public void onSuccess(DocumentReference documentReference) {
-                Toast.makeText(mainActivity, companyName +" başarıyla eklendi. "
-                        + documentReference.getId(), Toast.LENGTH_SHORT).show();
-                db.collection("companies").document(documentReference.getId()).update("id", documentReference.getId());
 
-            }
-        });
-
-    }
 
 
 }

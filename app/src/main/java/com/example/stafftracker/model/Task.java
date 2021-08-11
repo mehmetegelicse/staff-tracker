@@ -4,10 +4,12 @@ public class Task {
     String id;
     String userId;
     String title;
-    long created;
+    long createdAt;
     String description;
     int status;
+    boolean isActive;
     double latitude, longitude;
+    String staffNote;
 
     public String getStaffNote() {
         return staffNote;
@@ -17,18 +19,22 @@ public class Task {
         this.staffNote = staffNote;
     }
 
-    String staffNote;
 
-    public Task(String id, String userId, String title, long created, String description, int status, double latitude, double longitude,String staffNote) {
+
+   /* public Task(String id, String userId, String title, long created, boolean isActive, String description, int status, double latitude, double longitude,String staffNote) {
         this.id = id;
         this.userId = userId;
         this.title = title;
-        this.created = created;
+        this.createdAt = created;
         this.description = description;
         this.status = status;
         this.latitude = latitude;
         this.longitude = longitude;
         this.staffNote = staffNote;
+        this.isActive = isActive;
+    }*/
+
+    public Task() {
     }
 
     public String getId() {
@@ -56,11 +62,11 @@ public class Task {
     }
 
     public long getCreated() {
-        return created;
+        return createdAt;
     }
 
     public void setCreated(long created) {
-        this.created = created;
+        this.createdAt = created;
     }
 
     public String getDescription() {

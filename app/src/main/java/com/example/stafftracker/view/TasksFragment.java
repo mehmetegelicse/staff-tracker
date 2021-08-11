@@ -42,39 +42,17 @@ public class TasksFragment extends Fragment implements TaskItemAdapter.ITaskLoca
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     TaskItemAdapter taskItemAdapter;
+    HomeFragment homeFragment = new HomeFragment();
     MainActivity mainActivity;
     RecyclerView recyclerView;
     RecyclerView.LayoutManager mLayoutManager;
-    ArrayList<Task> taskArrayList = new ArrayList<>();
-    FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-    HomeFragment homeFragment = new HomeFragment();
+    ArrayList<Task> taskArrayList;
 
 
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
 
-    public TasksFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment SettingFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static TasksFragment newInstance(String param1, String param2) {
-        TasksFragment fragment = new TasksFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
 
@@ -90,6 +68,7 @@ public class TasksFragment extends Fragment implements TaskItemAdapter.ITaskLoca
             }
         });
         mainActivity = (MainActivity) getActivity();
+        mainActivity.getBottomNavigationView().getOrCreateBadge(R.id.tasks).setNumber(mainActivity.tasks.size());
     }
 
 
@@ -99,57 +78,11 @@ public class TasksFragment extends Fragment implements TaskItemAdapter.ITaskLoca
         View v =  inflater.inflate(R.layout.fragment_tasks, container, false);
         // Inflate the layout for this fragment
         loadAdapter(v);
-        taskArrayList.clear();
         mainActivity.cardView.setVisibility(View.GONE);
         return v;
     }
     void loadAdapter(View view){
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("tasks").get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                if(queryDocumentSnapshots.isEmpty()){
-                    System.out.println("List Empty");
-
-                }
-                else
-                {System.out.println("id : " + queryDocumentSnapshots.size());
-
-
-                    for (int i=0; i<queryDocumentSnapshots.size(); i++){
-                        if(queryDocumentSnapshots.getDocuments().get(i).get("userId").equals(firebaseAuth.getUid())) {
-                            taskArrayList.add(new Task(
-                                    queryDocumentSnapshots.getDocuments().get(i).getData().get("id").toString(),
-                                    queryDocumentSnapshots.getDocuments().get(i).getData().get("userId").toString(),
-                                    queryDocumentSnapshots.getDocuments().get(i).getData().get("title").toString(),
-                                    (long)queryDocumentSnapshots.getDocuments().get(i).getData().get("createdAt"),
-                                    queryDocumentSnapshots.getDocuments().get(i).getData().get("description").toString(),
-                                    Integer.parseInt(queryDocumentSnapshots.getDocuments().get(i).getData().get("status").toString()),
-                                    Double.parseDouble( queryDocumentSnapshots.getDocuments().get(i).getData().get("latitude").toString()),
-                                    Double.parseDouble(  queryDocumentSnapshots.getDocuments().get(i).getData().get("longitude").toString()),
-                                    queryDocumentSnapshots.getDocuments().get(i).getData().get("staffNote").toString()
-
-                            ));
-                        }
-                        taskItemAdapter.notifyDataSetChanged();
-
-
-                    }
-
-                }
-            }
-        });
-        //dString id,
-        //            String userId,
-        //            String title,
-        //            long created,
-        //            String description,
-        //            int status,
-        //            double latitude,
-        //            double longitude
-
-
-        taskItemAdapter = new TaskItemAdapter(getContext(),taskArrayList,this );
+        taskItemAdapter = new TaskItemAdapter(getContext(), mainActivity.getTasks(), this );
         recyclerView = view.findViewById(R.id.task_recyclerview);
         mLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(mLayoutManager) ;
@@ -160,12 +93,12 @@ public class TasksFragment extends Fragment implements TaskItemAdapter.ITaskLoca
     //double latitude, double longitude, String title, int status, String description, long createdAt,string TaskNote
     public void showTaskLocation(String id,double latitude, double longitude, String title, int status, String description, long createdAt, String taskNote) {
         Bundle result = new Bundle();
-        String[] taskLocation = {latitude+"", longitude+"", title, status +"", description, createdAt +"", taskNote, id};
+        String[] taskLocation = {latitude+"", longitude+""};
         result.putStringArray("task_location", taskLocation);
         getParentFragmentManager().setFragmentResult("locationRequest", result);
         getParentFragmentManager()
                 .beginTransaction()
-                .replace(R.id.flFragment, homeFragment)
+                .replace(R.id.flFragment, mainActivity.homeFragment)
                 .commit();
 
     }

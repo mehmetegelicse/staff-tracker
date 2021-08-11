@@ -16,5 +16,5 @@
     <item
         android:id="@+id/tasks"
         android:title="@string/tasks"
-        android:icon="@drawable/tasks"/>
+        android:icon="@drawable/ic_baseline_playlist_add_check_24"/>
 </menu>
