@@ -25,7 +25,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MaterialComponents.Light.Bridge">
         <activity
-            android:name=".SplashScreen"
+            android:name="com.eralpsoftware.stafftracker.SplashScreen"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/sales_tracker"
             android:screenOrientation="fullSensor"
@@ -45,7 +45,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDLdhJEpEA7ZdsMs94nsy91q3M5H6uPVJw" />
 
-        <activity android:name=".LoginActivity"
+        <activity android:name="com.eralpsoftware.stafftracker.LoginActivity"
             android:screenOrientation="portrait"
             >
             <intent-filter>
@@ -54,7 +54,7 @@
                     android:noHistory="true" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity"
+        <activity android:name="com.eralpsoftware.stafftracker.MainActivity"
             android:screenOrientation="portrait"
             >
             <intent-filter>
@@ -64,7 +64,8 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".utils.BackgroundService" />
+        <service android:name="com.eralpsoftware.stafftracker.utils.ScanService"
+            android:stopWithTask="false" />
     </application>
 
 </manifest>

@@ -8,7 +8,7 @@
     android:background="@drawable/gradient_card"
     android:gravity="center"
     android:padding="16dp"
-    tools:context=".LoginActivity"
+    tools:context="com.eralpsoftware.stafftracker.LoginActivity"
     android:orientation="vertical">
     <ImageView
         android:id="@+id/profile"

@@ -46,7 +46,9 @@
     <string name="ok">Tamam</string>
     <string name="task_note_on">Görev Notu :</string>
     <string name="api_key" translatable="false">AIzaSyDYlBytkLbdxBm0GkzKmvP5Ikrp03kNiNg</string>
+    <string name="location_updated" translatable="false">Location Updated: %1$s</string>
     <string name="result">Sonuç :</string>
     <string name="check_gps_internet">Lütfen İnternet ve Konum ayarlarınızı kontrol ediniz.</string>
+    <string name="logout">Çıkış Yap</string>
 
 </resources>
