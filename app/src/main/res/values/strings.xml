@@ -6,11 +6,11 @@
     <string name="company_edit">Şirket adı...</string>
     <string name="comp_address">Adres:</string>
     <string name="ekle">Ekle</string>
-    <string name="email">email</string>
-    <string name="password">password</string>
-    <string name="login">Login</string>
+    <string name="email">E-posta</string>
+    <string name="password">Parola</string>
+    <string name="login">Giriş yap</string>
     <string name="forgot_password">Şifremi unuttum</string>
-    <string name="switch_text">Arkaplan Takibi</string>
+    <string name="switch_text">Arkaplan Takibi:</string>
     <string name="company_aciklama">Açıklama :</string>
     <string name="add_description">Açıklama ekle</string>
     <string name="meeting_rate">Görüşme verimi</string>
@@ -39,6 +39,7 @@
     <string name="zaman">Tarih :</string>
     <string name="durum">Durum :</string>
     <string name="aciklama">Açıklama :</string>
+    <string name="ready">HAZIR</string>
     <string name="task_location_button">Haritada Göster</string>
     <string name="not_ekle">Düzenle</string>
     <string name="street_view">Sokak Gürünümü</string>
@@ -50,5 +51,26 @@
     <string name="result">Sonuç :</string>
     <string name="check_gps_internet">Lütfen İnternet ve Konum ayarlarınızı kontrol ediniz.</string>
     <string name="logout">Çıkış Yap</string>
+    <string name="privacy_policy">Privacy Policy - Terms and Conditions</string>
+    <string name="background_warning">Sales Tracker arkalplanda konum verisine erişecek.
+        Konum verileriniz Sales Tracker Web sayfasında iş yöneticiniz tarafından takip edilecektir.
+        Onay verdikten sonra dilerseniz ayarlar sayfasından bu özelliği kapatabilirsiniz. </string>
+    <string name="background_open">AÇIK</string>
+    <string name="background_closed">KAPALI</string>
+    <string name="title_activity_intro">IntroActivity</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
+    <string name="first_warning">Sales Tracker uygulamasının düzgün şekilde çalışması için arkaplanda konum verilerini toplaması gerekir.
+       Uygulama bu özelliği aktif etmek için sonraki adımda  izin isteyecektir. Gerekli izinler olmadıkça uygulama çalışmayacaktır.</string>
+    <string name="required_location_warning">"HER ZAMAN İZİN VER" seçeneğini seçmeniz gereklidir.</string>
+    <string name="next">İLERİ</string>
+    <string name="ANLADIM">başla</string>
+    <string name="welcome_text">Hoşgeldiniz</string>
+    <string name="welcome_text_bottom">Uygulama, pazarlama yöneticinizin sizi yönlendirmesi, izlemesi ve müşteriler hakkında bilgi toplaması için arka planda çalışmaya ve konum verisini toplamaya ihtiyaç duyar.
+        Bu bilgileri sadece personeli olduğunuz firma Salestracker Web App üzerinden işleyecektir.</string>
+    <string name="permission_title">Arkaplanda Çalışma ve Konum İzni</string>
+    <string name="on_background">Uygulama şu an arkaplanda çalışıyor.</string>
+    <string name="background_collect_data">Arkaplanda konum alınıyor.</string>
+
 
 </resources>

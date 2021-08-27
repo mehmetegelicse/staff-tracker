@@ -25,10 +25,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MaterialComponents.Light.Bridge">
         <activity
+            android:name="com.eralpsoftware.stafftracker.FirstLaunchActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.NoActionBar.Fullscreen"
+            />
+        <activity
             android:name="com.eralpsoftware.stafftracker.SplashScreen"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/sales_tracker"
-            android:screenOrientation="fullSensor"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar.Fullscreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,26 +51,28 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDLdhJEpEA7ZdsMs94nsy91q3M5H6uPVJw" />
 
-        <activity android:name="com.eralpsoftware.stafftracker.LoginActivity"
-            android:screenOrientation="portrait"
-            >
+        <activity
+            android:name="com.eralpsoftware.stafftracker.LoginActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action
                     android:name="android.intent.action.MAIN"
                     android:noHistory="true" />
             </intent-filter>
         </activity>
-        <activity android:name="com.eralpsoftware.stafftracker.MainActivity"
-            android:screenOrientation="portrait"
-            >
+        <activity
+            android:name="com.eralpsoftware.stafftracker.MainActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"
+                <action
+                    android:name="android.intent.action.MAIN"
                     android:enabled="true"
-                    android:exported="true"/>
+                    android:exported="true" />
             </intent-filter>
         </activity>
 
-        <service android:name="com.eralpsoftware.stafftracker.utils.ScanService"
+        <service
+            android:name="com.eralpsoftware.stafftracker.utils.ScanService"
             android:stopWithTask="false" />
     </application>
 

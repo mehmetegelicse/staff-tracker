@@ -1,6 +1,7 @@
 package com.eralpsoftware.stafftracker.view;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -74,7 +75,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
         floatingActionButton.setOnClickListener(v -> {
             getlocation();
         });
-         sharedPrefs = getActivity().getSharedPreferences("prefs", 0).edit();
         mainActivity.cardView.setVisibility(View.VISIBLE);
         return view;
 
@@ -101,6 +101,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
         }
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(@NonNull @NotNull GoogleMap googleMap) {
         ArrayList<MarkerOptions> markerOptionsArrayList = new ArrayList<>();
@@ -109,21 +110,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
         mMap = googleMap;
         LatLng eralp = new LatLng(38.446401, 27.217875);
 
-        if (ActivityCompat.checkSelfPermission(getContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
         mMap.setMyLocationEnabled(true);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(eralp, 13f));
-        fetchSavedCompanies();
+       // fetchSavedCompanies();
         fetchTasks();
         mMap.getUiSettings().setScrollGesturesEnabled(true);
         try {

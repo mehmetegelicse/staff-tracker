@@ -5,12 +5,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.CountDownTimer;
 
+import com.eralpsoftware.stafftracker.utils.Utils;
 import com.example.stafftracker.R;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Locale;
+
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -20,7 +22,6 @@ public class SplashScreen extends AppCompatActivity {
     private FirebaseAuth mAuth;
     String languageCode = "en";
 
-    private final int SPLASH_DISPLAY_LENGTH = 1000;
 
     /** Called when the activity is first created. */
     @Override
@@ -30,30 +31,26 @@ public class SplashScreen extends AppCompatActivity {
         setLocale();
         mAuth = FirebaseAuth.getInstance();
         setContentView(R.layout.activity_splash_screen);
-    //    startService(new Intent(getBaseContext(),ScanService.class));
-        /* New Handler to start the Menu-Activity
-         * and close this Splash-Screen after some seconds.*/
-        new Handler().postDelayed(new Runnable(){
-            @Override
-            public void run() {
-                route(mAuth.getCurrentUser() != null);
-
+        new CountDownTimer(1000, 1000) {
+            public void onFinish() {
+               route(mAuth.getCurrentUser() != null );
             }
 
-        }, SPLASH_DISPLAY_LENGTH);
+            public void onTick(long millisUntilFinished) {
+                // millisUntilFinished    The amount of time until finished.
+            }
+        }.start();
 
     }
     void route(boolean auth){
-        Intent intent;
+       // Intent i = new Intent(this, FirstLaunchActivity);
         if(auth){
-            intent = new Intent(SplashScreen.this,MainActivity.class);
+            Utils.goToActivity(this, FirstLaunchActivity.class, false);
+
         }
         else{
-            intent = new Intent(SplashScreen.this,LoginActivity.class);
+            Utils.goToActivity(this, LoginActivity.class, true);
         }
-        startActivity(intent);
-        SplashScreen.this.finish();
-
     }
 void setLocale(){
     String languageToLoad  = Locale.getDefault().getLanguage(); // your language

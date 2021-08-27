@@ -35,6 +35,10 @@ public class FirebaseService {
     CollectionReference colRef = db.collection("User");
     FirebaseAuth currentUser = FirebaseAuth.getInstance();
 
+    public void setLocationSetting(boolean b) {
+        db.collection("user").document(Objects.requireNonNull(currentUser.getUid())).update("location_sharing", b);
+    }
+
 
     public void pushFiles(Context ctx,ArrayList<Map<String, Object>> points, String userId, String time){
         Collections.addAll(points);

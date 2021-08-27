@@ -51,6 +51,7 @@ public class ScanService extends Service {
     NotificationManager notificationManager;
     final String NOTIFICATION_CHANNEL_ID = "my_channel_id_01";
     public static final String CHANNEL_ID = "ForegroundServiceChannel";
+    FirebaseService fs = new FirebaseService();
 
 
 
@@ -59,7 +60,8 @@ public class ScanService extends Service {
         super.onStartCommand(intent, flags, startId);
 
      //   PendingIntent pendingIntent = PendingIntent.getActivity(this,0,intent,0);
-        Toast.makeText(getApplicationContext(), "Servis Başlatıldı.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "Now the app runs on Background", Toast.LENGTH_SHORT).show();
+        fs.setLocationSetting(true);
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         createNotificationChannel();
@@ -67,8 +69,8 @@ public class ScanService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
                 0, notificationIntent, 0);
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Foreground Service")
-                .setContentText("13123")
+                .setContentTitle(getString(R.string.sales_tracker))
+                .setContentText(getString(R.string.background_collect_data))
                 .setSmallIcon(R.drawable.logo)
                 .setContentIntent(pendingIntent)
                 .build();
@@ -78,7 +80,7 @@ public class ScanService extends Service {
 
         mStatusChecker.run();
         movementChecker.run();
-        pushNotification("Arkaplanda çalışıyor.");
+        pushNotification(getString(R.string.on_background));
 
         return START_STICKY;
     }
@@ -163,10 +165,10 @@ public class ScanService extends Service {
                      //   Toast.makeText(getApplicationContext(), _point.get("latitude") + "," + _point.get("longitude") + " \n" + _points.size(), Toast.LENGTH_SHORT).show();
                         //  Toast.makeText(getApplicationContext(), location.getLatitude() + "," + location.getLongitude(), Toast.LENGTH_SHORT).show();
                         if(_points.size()%10 == 0){
-                            pushNotification("Konum verisi Alınıyor. \n" + new SimpleDateFormat("yyyy/MM/dd  HH:mm:ss").format(_points.get(_points.size()-1).get("time")));
+                            pushNotification("Konum verisi Alınıyor. \n" +"Son (" + _points.size()+ ") :"+ new SimpleDateFormat("HH:mm:ss").format(_points.get(_points.size()-1).get("time")));
 
                         }
-                        if (_points.size() >= 100) {
+                        if (_points.size() >= 150) {
                             String timeStamp = new SimpleDateFormat("yyyy/MM/dd  HH:mm:ss").format(Calendar.getInstance().getTime());
 
                             fb.pushFiles(getApplicationContext(), _points, currentUser.getUid(), timeStamp);
@@ -182,7 +184,7 @@ public class ScanService extends Service {
 
 
                 });
-                mHandler.postDelayed(mStatusChecker, 5000);
+                mHandler.postDelayed(mStatusChecker, 10000);
             }
         }
 
@@ -238,13 +240,6 @@ public class ScanService extends Service {
     public void onTaskRemoved(Intent rootIntent) {
         System.out.println("TaskRemoved");
         super.onTaskRemoved(rootIntent);
-    }
-
-    public void stoptimertask() {
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-        }
     }
 
     public double distFromMeters(double lat1, double lng1, double lat2, double lng2) {
