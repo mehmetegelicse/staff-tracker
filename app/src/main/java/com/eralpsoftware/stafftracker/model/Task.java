@@ -5,6 +5,8 @@ public class Task {
     String userId;
     String title;
     long createdAt;
+
+
     String description;
     int status;
     boolean isActive;
@@ -61,12 +63,21 @@ public class Task {
         this.title = title;
     }
 
-    public long getCreated() {
+
+    public long getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreated(long created) {
-        this.createdAt = created;
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     public String getDescription() {

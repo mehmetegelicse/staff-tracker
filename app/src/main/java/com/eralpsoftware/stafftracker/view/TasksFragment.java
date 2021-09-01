@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import com.eralpsoftware.stafftracker.MainActivity;
 import com.example.stafftracker.R;
@@ -33,11 +34,12 @@ public class TasksFragment extends Fragment implements TaskItemAdapter.ITaskLoca
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     TaskItemAdapter taskItemAdapter;
-    HomeFragment homeFragment = new HomeFragment();
+
     MainActivity mainActivity;
     RecyclerView recyclerView;
     RecyclerView.LayoutManager mLayoutManager;
     ArrayList<Task> taskArrayList;
+
 
 
     // TODO: Rename and change types of parameters
@@ -59,9 +61,7 @@ public class TasksFragment extends Fragment implements TaskItemAdapter.ITaskLoca
             }
         });
         mainActivity = (MainActivity) getActivity();
-        if(mainActivity.tasks != null) {
-            mainActivity.getBottomNavigationView().getOrCreateBadge(R.id.tasks).setNumber(mainActivity.tasks.size());
-        }
+        mainActivity.setTitle(getString(R.string.tasks));
     }
 
 
@@ -71,7 +71,16 @@ public class TasksFragment extends Fragment implements TaskItemAdapter.ITaskLoca
         View v =  inflater.inflate(R.layout.fragment_tasks, container, false);
         // Inflate the layout for this fragment
         loadAdapter(v);
-        mainActivity.cardView.setVisibility(View.GONE);
+      //  mainActivity.cardView.setVisibility(View.GONE);
+
+        if(mainActivity.tasks == null) {
+            mainActivity.getPbar().setVisibility(View.VISIBLE);
+            mainActivity.mapContainer.setVisibility(View.GONE);
+        }{
+            mainActivity.getPbar().setVisibility(View.GONE);
+            mainActivity.mapContainer.setVisibility(View.VISIBLE);
+
+        }
         return v;
     }
     void loadAdapter(View view){

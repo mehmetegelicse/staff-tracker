@@ -23,7 +23,7 @@
         android:label="@string/sales_tracker"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MaterialComponents.Light.Bridge">
+        android:theme="@style/Theme.MaterialComponents.Bridge">
         <activity
             android:name="com.eralpsoftware.stafftracker.FirstLaunchActivity"
             android:exported="true"
@@ -45,7 +45,7 @@
 
         <uses-library
             android:name="org.apache.http.legacy"
-            android:required="false" />
+            android:required="false"/>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -62,6 +62,7 @@
         </activity>
         <activity
             android:name="com.eralpsoftware.stafftracker.MainActivity"
+            android:launchMode='singleTask'
             android:screenOrientation="portrait">
             <intent-filter>
                 <action

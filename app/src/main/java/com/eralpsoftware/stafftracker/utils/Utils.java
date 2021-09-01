@@ -75,7 +75,6 @@ public class Utils {
         if(setFlag){
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         }
-
         from.startActivity(intent);
 
 

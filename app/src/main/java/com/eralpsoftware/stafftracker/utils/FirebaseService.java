@@ -1,6 +1,7 @@
 package com.eralpsoftware.stafftracker.utils;
 
 import android.app.Activity;
+import android.app.Notification;
 import android.content.Context;
 import android.location.Location;
 import android.widget.Toast;
@@ -8,7 +9,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.eralpsoftware.stafftracker.model.Task;
+import com.eralpsoftware.stafftracker.viewmodel.TaskItemAdapter;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -16,6 +20,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.WriteBatch;
@@ -88,20 +93,7 @@ public class FirebaseService {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection(collection).document(id).delete();
     }
-    public static ArrayList<Task> fetchTasks(){
-        ArrayList<Task> taskArrayList = new ArrayList<>();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("tasks").get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                for (int i = 0; i < queryDocumentSnapshots.size(); i++) {
-                    Task task = queryDocumentSnapshots.getDocuments().get(i).toObject(Task.class);
-                    taskArrayList.add(task);
-                }
-            }
-        });
-        return taskArrayList;
-    }
+
     public static void addCompanyToDatabase(Location location, String companyName, String description, double rating, String meeting, String meeting_result, Activity activity){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String timeStamp = new SimpleDateFormat("yyyy/MM/dd  HH:mm:ss").format(Calendar.getInstance().getTime());
@@ -132,4 +124,5 @@ public class FirebaseService {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("user").document(currentUser.getUid()).update("isMoving", isMoving);
     }
+
 }

@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -48,7 +49,7 @@ import java.util.ArrayList;
 
 public class HomeFragment extends Fragment implements OnMapReadyCallback, BottomSheetView.BottomSheetListener {
     public GoogleMap mMap;
-    BottomSheetView bottomSheetView;
+
     MainActivity mainActivity;
     FusedLocationProviderClient fusedLocationProviderClient;
     FloatingActionButton floatingActionButton;
@@ -56,9 +57,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
     LatLng currentLocation;
     String[] task_attr = new String[8];
     ArrayList<CompanyModel> companyModelList = new ArrayList<>();
-    SharedPreferences.Editor sharedPrefs;
-
     int badgeNumber = 0;
+    ImageButton closeMap;
+    private LatLng taskLocation;
 
 
     @Nullable
@@ -73,32 +74,11 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(getActivity());
         floatingActionButton = view.findViewById(R.id.floatingActionButton);
         floatingActionButton.setOnClickListener(v -> {
-            getlocation();
+
         });
-        mainActivity.cardView.setVisibility(View.VISIBLE);
         return view;
 
 
-    }
-
-    private void getlocation() {
-        if (ActivityCompat.checkSelfPermission(getContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED) {
-            System.out.println();
-            fusedLocationProviderClient.getLastLocation()
-                    .addOnSuccessListener(location -> {
-                        System.out.println();
-                        // Got last known location. In some rare situations this can be null.
-                        if (location != null) {
-                            bottomSheetView = new BottomSheetView(location);
-                            bottomSheetView.show(getChildFragmentManager(), "bottomsheet");
-
-                        }
-                    });
-
-        }
     }
 
     @SuppressLint("MissingPermission")
@@ -113,7 +93,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
         mMap.setMyLocationEnabled(true);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(eralp, 13f));
        // fetchSavedCompanies();
-        fetchTasks();
+
         mMap.getUiSettings().setScrollGesturesEnabled(true);
         try {
             if(currentLocation == null && mainActivity.gps_enabled && mainActivity.network_enabled){
@@ -121,6 +101,10 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
             }
         }catch (Exception e){
             System.out.println(e);
+        }
+        if(taskLocation != null){
+            mMap.addMarker(new MarkerOptions().position(taskLocation).flat(true));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(taskLocation, 13f));
         }
 
         mMap.setOnMarkerClickListener(marker -> {
@@ -140,7 +124,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
                                     marker.getPosition().longitude,
                                     tasks.get(i).getStatus(),
                                     tasks.get(i).getDescription(),
-                                    tasks.get(i).getCreated(),
+                                    tasks.get(i).getCreatedAt(),
                                     tasks.get(i).getStaffNote());
                         }
                     }
@@ -149,9 +133,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
             }
             return false;
         });
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mainActivity.getBottomNavigationView().setBackground(mainActivity.getDrawable(R.drawable.gradient_card));
-        }
+
         getParentFragmentManager().setFragmentResultListener("locationRequest",this, (requestKey, result) ->
         {
             try {
@@ -196,50 +178,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
 
     }
 
-    public ArrayList<Task> fetchTasks(){
-        ArrayList<Task> taskArrayList = new ArrayList<>();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("tasks").
-                orderBy("status", Query.Direction.ASCENDING)
-                .get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                for (int i = 0; i < queryDocumentSnapshots.size(); i++) {
-                    Task task = queryDocumentSnapshots.getDocuments().get(i).toObject(Task.class);
-                    if(task.getUserId().equals(currentUser.getUid())) {
-                        task.setCreated((long) queryDocumentSnapshots.getDocuments().get(i).get("createdAt"));
-                        taskArrayList.add(task);
 
-                    }
-                    double a = task.getLatitude();
-                    double b = task.getLongitude();
-                    try {
-                        if(task.getUserId().equals(currentUser.getUid())) {
-                            if (task.getStatus() == 1) {
-                                mMap.addMarker(new MarkerOptions().title(task.getTitle())
-                                        .position(new LatLng(a, b))
-                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                                        .flat(true));
-                            }
-                            else {
-                                mMap.addMarker(new MarkerOptions().title(task.getTitle())
-                                        .position(new LatLng(a, b))
-                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-                                        .flat(true));
-                                badgeNumber++;
-                                mainActivity.getBottomNavigationView().getOrCreateBadge(R.id.tasks).setNumber(badgeNumber);
-
-                            }
-                        }
-                    }catch (Exception e){
-                        System.out.printf("hata : "+ e);
-                    }
-                }
-                mainActivity.setTasks(taskArrayList);
-            }
-        });
-        return taskArrayList;
-    }
     @Override
     public void onButtonClicked(Location location, String text, String description, double rating, String meeting, String meeting_result) {
         LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
@@ -247,7 +186,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, Bottom
                 .defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
         FirebaseService.addCompanyToDatabase(location,text, description, rating, meeting, meeting_result,getActivity());
     }
-
 
 
 

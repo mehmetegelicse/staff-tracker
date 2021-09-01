@@ -1,6 +1,5 @@
 <resources>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="add_company">Add Company Meeting</string>
     <string name="company_edit">Company name…</string>
     <string name="comp_address">Address:</string>
@@ -15,9 +14,6 @@
     <string name="add_description">Add Description</string>
     <string name="meeting_rate">Meeting Efficiency</string>
     <string name="adres_on">Address :</string>
-    <string name="title_activity_splash_screen">FullscreenActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="sales_tracker">Sales Tracker</string>
     <string name="forgot_password_alert">Enter your signed mail address.</string>
     <string name="send">Send</string>
@@ -55,9 +51,6 @@
     <string name="check_gps_internet">Please check your location and network settings.</string>
     <string name="task_note_on">Task Note :</string>
     <string name="required_location_warning">""ALLOW ALL THE TIME"" or ""ALWAYS"" options are need to be chosen.</string>
-    <string name="title_activity_intro">IntroActivity</string>
-    <string name="tab_text_1">Tab 1</string>
-    <string name="tab_text_2">Tab 2</string>
     <string name="first_warning">Sales Tracker needs to collect location data in the background in order to work properly.
        The application will ask for permission in the next step to activate this feature. The application will not work unless the necessary permissions are granted.</string>
     <string name="next">NEXT</string>

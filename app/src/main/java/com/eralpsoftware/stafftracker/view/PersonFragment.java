@@ -41,7 +41,7 @@ public class PersonFragment extends Fragment {
         // Inflate the layout for this fragment
         companies.clear();
         getCompanies(view);
-        mainActivity.cardView.setVisibility(View.GONE);
+        //mainActivity.cardView.setVisibility(View.GONE);
 
         return view;
     }

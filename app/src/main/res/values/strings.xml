@@ -1,7 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">staffTracker</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">boş fragment</string>
     <string name="add_company">Firma Görüşmesi Ekle</string>
     <string name="company_edit">Şirket adı...</string>
     <string name="comp_address">Adres:</string>
@@ -15,9 +13,6 @@
     <string name="add_description">Açıklama ekle</string>
     <string name="meeting_rate">Görüşme verimi</string>
     <string name="adres_on">Adres :</string>
-    <string name="title_activity_splash_screen">FullscreenActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="sales_tracker">Sales Tracker</string>
     <string name="forgot_password_alert">Kayıtlı olan e-mail adresini gir.</string>
     <string name="send">Gönder</string>
@@ -46,7 +41,6 @@
     <string name="draw_route">Rota Çiz</string>
     <string name="ok">Tamam</string>
     <string name="task_note_on">Görev Notu :</string>
-    <string name="api_key" translatable="false">AIzaSyDYlBytkLbdxBm0GkzKmvP5Ikrp03kNiNg</string>
     <string name="location_updated" translatable="false">Location Updated: %1$s</string>
     <string name="result">Sonuç :</string>
     <string name="check_gps_internet">Lütfen İnternet ve Konum ayarlarınızı kontrol ediniz.</string>
@@ -57,9 +51,6 @@
         Onay verdikten sonra dilerseniz ayarlar sayfasından bu özelliği kapatabilirsiniz. </string>
     <string name="background_open">AÇIK</string>
     <string name="background_closed">KAPALI</string>
-    <string name="title_activity_intro">IntroActivity</string>
-    <string name="tab_text_1">Tab 1</string>
-    <string name="tab_text_2">Tab 2</string>
     <string name="first_warning">Sales Tracker uygulamasının düzgün şekilde çalışması için arkaplanda konum verilerini toplaması gerekir.
        Uygulama bu özelliği aktif etmek için sonraki adımda  izin isteyecektir. Gerekli izinler olmadıkça uygulama çalışmayacaktır.</string>
     <string name="required_location_warning">"HER ZAMAN İZİN VER" seçeneğini seçmeniz gereklidir.</string>

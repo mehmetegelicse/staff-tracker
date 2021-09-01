@@ -48,7 +48,6 @@ import java.util.List;
 
 public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
-    public FirebaseUser mUser;
     private FirebaseFirestore db;
     EditText email, password;
     boolean success = false;
@@ -74,6 +73,7 @@ public class LoginActivity extends AppCompatActivity {
         passError =  findViewById(R.id.passError);
         forgotPasswordButton = findViewById(R.id.forgotButton);
         privacy = findViewById(R.id.privacy_text);
+        goIntroPage();
         if(success){
             progressBar.setVisibility(View.GONE);
             login.setVisibility(View.VISIBLE);
@@ -180,7 +180,7 @@ public class LoginActivity extends AppCompatActivity {
     }
     void goIntroPage(){
         if(mAuth.getCurrentUser() != null){
-            Utils.goToActivity(LoginActivity.this, FirstLaunchActivity.class, false);
+            Utils.goToActivity(LoginActivity.this, MainActivity.class, true);
         }
 
     }

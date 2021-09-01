@@ -124,7 +124,7 @@ public class FirstLaunchActivity extends AppCompatActivity {
     }
 
     private void launchHomeScreen() {
-        startActivity(new Intent(FirstLaunchActivity.this, MainActivity.class));
+        startActivity(new Intent(FirstLaunchActivity.this, LoginActivity.class));
         finish();
     }
 

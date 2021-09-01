@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.eralpsoftware.stafftracker"
-        minSdkVersion 16
+        minSdkVersion 19
         targetSdkVersion 30
         versionCode 4
         versionName "1.2"
@@ -64,6 +64,9 @@ dependencies {
 
     //rating bar
     implementation 'me.zhanghai.android.materialratingbar:library:1.4.0'
+
+    implementation 'com.github.jakob-grabner:Circle-Progress-View:1.4'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 
 
 

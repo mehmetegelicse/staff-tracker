@@ -2,76 +2,94 @@ package com.eralpsoftware.stafftracker;
 
 import static com.eralpsoftware.stafftracker.utils.Utils.BACKGROUND_KEY;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.PagerSnapHelper;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SnapHelper;
+
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
+
 import com.eralpsoftware.stafftracker.utils.FirebaseService;
 import com.eralpsoftware.stafftracker.utils.PreferencesHelper;
 import com.eralpsoftware.stafftracker.utils.Utils;
+import com.eralpsoftware.stafftracker.view.BottomSheetView;
 import com.eralpsoftware.stafftracker.view.HomeFragment;
 import com.eralpsoftware.stafftracker.view.SettingFragment;
+import com.eralpsoftware.stafftracker.viewmodel.TaskItemAdapter;
 import com.example.stafftracker.R;
 import com.eralpsoftware.stafftracker.model.Task;
 import com.eralpsoftware.stafftracker.utils.ScanService;
 import com.eralpsoftware.stafftracker.view.PersonFragment;
 import com.eralpsoftware.stafftracker.view.TasksFragment;
+import com.github.mikephil.charting.charts.LineChart;
 import com.google.android.gms.location.FusedLocationProviderClient;
 
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import org.jetbrains.annotations.NotNull;
+
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
-public class MainActivity extends AppCompatActivity implements NavigationBarView.OnItemSelectedListener {
+import at.grabner.circleprogress.CircleProgressView;
+
+public class MainActivity extends AppCompatActivity implements TaskItemAdapter.ITaskLocation {
     final private int REQUEST_CODE_ASK_PERMISSIONS = 1;
     FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
     public HomeFragment homeFragment;
     PersonFragment personFragment;
     TasksFragment tasksFragment;
     SettingFragment settingFragment;
-    SharedPreferences sharedPrefs;
-
-    public BottomNavigationView getBottomNavigationView() {
-        return bottomNavigationView;
-    }
-
-    public BottomNavigationView bottomNavigationView;
-    FirebaseAuth mauth = FirebaseAuth.getInstance();
+    public FrameLayout mapContainer;
+    public LinearLayout mainContainer;
+    BottomSheetView bottomSheetView;
+    CircleProgressView circleProgressView;
     public FloatingActionButton button;
-    private int mMenuId;
-
+    ConstraintLayout fragmentContainer;
     ArrayList<Map<String, Object>> _points = new ArrayList<>();
     ImageView imageView;
-    public CardView cardView;
     public ArrayList<Task> getTasks() {
         return tasks;
     }
@@ -81,14 +99,50 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
 
     FirebaseService fb = new FirebaseService();
     FusedLocationProviderClient fusedLocationClient;
-    LinearLayout linearLayout;
-    TextView tv_lat, tv_long, background_button_text;
+    TextView  background_button_text, daily_tasks_tv, total_tasks_tv, done_tasks_tv, onHoldTasks_tv;
     public TextView open_close;
     public ArrayList<Task> tasks;
     public boolean gps_enabled = false;
     public boolean network_enabled = false;
     Class<?> backgroundService  = ScanService.class;
+    TaskItemAdapter taskItemAdapter;
+    RecyclerView recyclerView;
+    RecyclerView.LayoutManager mLayoutManager;
+    FloatingActionButton floatingActionButton;
+    Button taskPageButton;
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
+    ImageButton imageButton;
+    LineChart chart;
+    ProgressBar pbar;
 
+    public ProgressBar getPbar() {
+        return pbar;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_setting:
+                // User chose the "Settings" item, show the app settings UI...
+                loadFragment(settingFragment);
+                return true;
+
+            case R.id.action_search:
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,21 +151,29 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
+        tasks = fetchTasks();
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         tasksFragment = new TasksFragment();
         homeFragment = new HomeFragment();
+        floatingActionButton = findViewById(R.id.floating_button);
         personFragment = new PersonFragment();
         settingFragment = new SettingFragment();
         imageView = findViewById(R.id.image);
         button = findViewById(R.id.button);
-        tv_lat = findViewById(R.id.tv_latitude);
-        tv_long = findViewById(R.id.tv_longitude);
-        linearLayout = findViewById(R.id.linearLayout_latlang);
-        bottomNavigationView = findViewById(R.id.bottomNavigationView);
         background_button_text = findViewById(R.id.background_button_text);
         open_close = findViewById(R.id.open_close);
-
-        loadFragment(homeFragment);
+        mainContainer = findViewById(R.id.main_container);
+        mapContainer = findViewById(R.id.flFragment);
+        circleProgressView = findViewById(R.id.circleView);
+        daily_tasks_tv = findViewById(R.id.daily_task_number);
+        taskPageButton = findViewById(R.id.go_to_tasks);
+        imageButton = findViewById(R.id.close_map);
+        pbar = findViewById(R.id.transitive_progressBar);
+        fragmentContainer = findViewById(R.id.map_container);
+        done_tasks_tv = findViewById(R.id.done_tasks);
+        onHoldTasks_tv = findViewById(R.id.on_hold);
+        total_tasks_tv = findViewById(R.id.total_tasks);
+        //  loadFragment(homeFragment);
         LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 
         try {
@@ -130,12 +192,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                     .setNegativeButton("iptal",null)
                     .show();
         }
-        changeView();
-        cardView = findViewById(R.id.cardView);
-        bottomNavigationView.setOnItemSelectedListener(this);
-        int menuItemId = bottomNavigationView.getMenu().getItem(3).getItemId();
 
 
+        floatingActionButton.setOnClickListener( v -> getlocation());
         button.setOnClickListener(v ->{
             if(PreferencesHelper.getInstance(this).readData(BACKGROUND_KEY)) {
                     startBackgroundService();
@@ -147,14 +206,20 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 }
             }
         );
+        imageButton.setOnClickListener(v->{
+            setTitle(getString(R.string.app_name));
+            mainContainer.setVisibility(View.VISIBLE);
+            fragmentContainer.setVisibility(View.GONE);
+        });
+
     }
     @Override
     public void onBackPressed() {
         AlertDialog diaBox = AskOption();
         diaBox.show();
     }
-    private AlertDialog AskOption()
-    {
+
+    private AlertDialog AskOption() {
         AlertDialog myQuittingDialogBox =new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.exit_app))
                 .setMessage(getString(R.string.exit_app_message))
@@ -163,18 +228,6 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
                 .setNegativeButton(getString(R.string.no), (dialog, which) -> dialog.dismiss())
                 .create();
         return myQuittingDialogBox;
-    }
-
-    private boolean loadFragment(Fragment fragment) {
-        if (fragment != null) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.flFragment, fragment)
-                    .commit();
-            return true;
-        }
-        Toast.makeText(this, getResources().getString(R.string.check_gps_internet), Toast.LENGTH_SHORT).show();
-        return false;
     }
 
     @Override
@@ -223,68 +276,19 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull @NotNull String[] permissions, @NonNull @NotNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 0 && grantResults.length > 0){
-            for(int i=0; i<grantResults.length; i++){
-        if(grantResults[i] == PackageManager.PERMISSION_GRANTED){
-                 Toast.makeText(this, permissions[i] + " Granted.", Toast.LENGTH_SHORT).show();
+    private boolean loadFragment(Fragment fragment) {
+        if (fragment != null) {
+            mainContainer.setVisibility(View.GONE);
+            fragmentContainer.setVisibility(View.VISIBLE);
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.flFragment, fragment)
+                    .commit();
+            return true;
         }
-        else if (grantResults[i] == PackageManager.PERMISSION_DENIED  && Build.VERSION.SDK_INT> 23){
-            new AlertDialog.Builder(this).setTitle(getString(R.string.need_permission_alert))
-        .setMessage(getString(R.string.need_permission_content))
-        .setPositiveButton(getResources().getString(R.string.ok), (dialog, which) -> {
-            FirstLaunchActivity.goToSettings(this);
-            finishAffinity();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION },requestCode);
-            }
-            dialog.dismiss();
-        }).setNegativeButton(getString(R.string.block), (dialog, which) -> {
-            dialog.dismiss();
-            finishAffinity();
-        }).create().show();}
-        else{
-            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-            Uri uri = Uri.fromParts("package", getPackageName(), null);
-            intent.setData(uri);
-            startActivity(intent);
-        } }
-        }
+        Toast.makeText(this, getResources().getString(R.string.check_gps_internet), Toast.LENGTH_SHORT).show();
+        return false;
     }
-    @Override
-    public boolean onNavigationItemSelected(@NonNull @NotNull MenuItem item) {
-        final int HOME = R.id.home;
-        final int PERSON = R.id.person;
-        final int SETTINGS = R.id.settings;
-        final int TASKS = R.id.tasks;
-       mMenuId = item.getItemId();
-       for(int i=0; i<bottomNavigationView.getMenu().size(); i++){
-           MenuItem menuItem = bottomNavigationView.getMenu().getItem(i);
-           boolean isChecked = menuItem.getItemId() == item.getItemId();
-       }
-       switch (item.getItemId()){
-           case HOME: {
-               loadFragment(homeFragment);
-           }break;
-           case PERSON:{
-               loadFragment(personFragment);
-           }break;
-
-           case SETTINGS:{
-               loadFragment(settingFragment);
-           }break;
-
-           case TASKS:{
-               if(tasks != null) {
-                   loadFragment(tasksFragment);
-               }
-           }break;
-       }
-       return true;
-    }
-
 
     public boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -327,4 +331,113 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         }
 
     }
+
+    void loadAdapter(ArrayList<Task> taskArrayList){
+            SnapHelper snapHelper = new PagerSnapHelper();
+            taskItemAdapter = new TaskItemAdapter(this, taskArrayList, this);
+            recyclerView = findViewById(R.id.task_recyclerview);
+            mLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+            recyclerView.setLayoutManager(mLayoutManager);
+            snapHelper.attachToRecyclerView(recyclerView);
+            recyclerView.setAdapter(taskItemAdapter);
+    }
+
+    @Override
+    public void showTaskLocation(String id, double latitude, double longitude, String title, int status, String description, long createdAt, String taskName) {
+
+        loadFragment(homeFragment);
+
+    }
+    public ArrayList<Task> fetchTasks(){
+        ArrayList<Task> taskArrayList = new ArrayList<>();
+        AtomicLong daily_time = new AtomicLong();
+        db.collection("tasks").get().addOnSuccessListener(queryDocumentSnapshots -> {
+            for (int i = 0; i < queryDocumentSnapshots.size(); i++) {
+                if(queryDocumentSnapshots.getDocuments().get(i).getData().get("userId").equals(currentUser.getUid())){
+                    Task task = queryDocumentSnapshots.getDocuments().get(i).toObject(Task.class);
+                    System.out.println(queryDocumentSnapshots.getDocuments().get(i).getData().get("createdAt"));
+                    taskArrayList.add(task);
+                }
+
+            }
+            loadAdapter(taskArrayList);
+
+        }).addOnFailureListener(
+                e -> System.out.println(e)
+        ).addOnCompleteListener(task -> {
+
+            Date date = new Date(System.currentTimeMillis());
+            DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+            String dateString = formatter.format(date);
+            try {
+                Date a = formatter.parse(dateString);
+                System.out.println(a.getTime());
+                daily_time.set(a.getTime());
+
+
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+
+
+            ArrayList<Task> list = taskArrayList;
+            int dailyTasks = 0;
+            int waitingTask = 0;
+            int completedTask = 0;
+            int cancelledTask = 0;
+            for (int i = 0; i < list.size(); i++) {
+                long d = list.get(i).getCreatedAt();
+                System.out.println(d);
+                if(list.get(i).getStatus() == 1){
+                    completedTask++;
+                }
+                if(list.get(i).getStatus() == 0){
+                    waitingTask++;
+                }
+                if(list.get(i).getStatus() == 2){
+                    cancelledTask++;
+                }
+                if(list.get(i).getCreatedAt() > daily_time.get() ){
+                    dailyTasks++;
+                }
+            }
+            circleProgressView.setMaxValue(list.size());
+            circleProgressView.setValue(completedTask);
+            if(dailyTasks ==0) {
+                daily_tasks_tv.setText("Günlük görev yok.");
+                taskPageButton.setEnabled(false);
+            }else{
+                daily_tasks_tv.setText(dailyTasks + " adet görev.");
+                taskPageButton.setOnClickListener(v -> loadFragment(tasksFragment));
+            }
+            onHoldTasks_tv.setText(waitingTask + " beklemede,");
+            done_tasks_tv.setText(completedTask + " tamamlanmış,");
+            total_tasks_tv.setText(waitingTask + completedTask + " toplam");
+        });
+        return taskArrayList;
+    }
+
+    @SuppressLint("MissingPermission")
+    private void getlocation() {
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+            System.out.println();
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(location -> {
+                        System.out.println();
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            bottomSheetView = new BottomSheetView(location);
+                            bottomSheetView.show(getSupportFragmentManager(), "bottomsheet");
+
+                        }
+                    });
+
+        }
+    }
+
+
 }

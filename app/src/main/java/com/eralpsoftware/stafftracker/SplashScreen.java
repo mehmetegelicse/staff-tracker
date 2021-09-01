@@ -1,5 +1,7 @@
 package com.eralpsoftware.stafftracker;
 
+import static com.eralpsoftware.stafftracker.utils.Utils.FIRST_LAUNCH_KEY;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -7,11 +9,13 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 
+import com.eralpsoftware.stafftracker.utils.PreferencesHelper;
 import com.eralpsoftware.stafftracker.utils.Utils;
 import com.example.stafftracker.R;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Locale;
+import java.util.prefs.PreferenceChangeEvent;
 
 
 /**
@@ -44,12 +48,11 @@ public class SplashScreen extends AppCompatActivity {
     }
     void route(boolean auth){
        // Intent i = new Intent(this, FirstLaunchActivity);
-        if(auth){
-            Utils.goToActivity(this, FirstLaunchActivity.class, false);
-
+        if(PreferencesHelper.getInstance(this).readData(FIRST_LAUNCH_KEY)){
+            Utils.goToActivity(this, LoginActivity.class, true);
         }
         else{
-            Utils.goToActivity(this, LoginActivity.class, true);
+            Utils.goToActivity(this, FirstLaunchActivity.class, false);
         }
     }
 void setLocale(){

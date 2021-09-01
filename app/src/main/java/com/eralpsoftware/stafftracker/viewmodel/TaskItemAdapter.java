@@ -23,6 +23,7 @@ import com.eralpsoftware.stafftracker.utils.FirebaseService;
 import com.example.stafftracker.R;
 import com.eralpsoftware.stafftracker.model.Task;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.jetbrains.annotations.NotNull;
@@ -46,9 +47,10 @@ public class TaskItemAdapter extends RecyclerView.Adapter<TaskItemAdapter.ViewHo
 
 
     public TaskItemAdapter(Context context, ArrayList<Task> tasks, ITaskLocation callback) {
-        inflater = LayoutInflater.from(context);
         this.tasks = tasks;
+        inflater = LayoutInflater.from(context);
         mCallback = callback;
+
 
 
     }
@@ -87,7 +89,7 @@ public class TaskItemAdapter extends RecyclerView.Adapter<TaskItemAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull @NotNull TaskItemAdapter.ViewHolder holder, int position) {
-        long time = tasks.get(position).getCreated();
+        long time = tasks.get(position).getCreatedAt();
         holder.getTaskName().setText(tasks.get(position).getTitle());
         holder.getAddress().setText(getAddressFromLocation( new LatLng(tasks.get(position).getLatitude(), tasks.get(position).getLongitude()), ctx));
         holder.getDescription().setText(tasks.get(position).getDescription());
@@ -111,7 +113,7 @@ public class TaskItemAdapter extends RecyclerView.Adapter<TaskItemAdapter.ViewHo
                                             tasks.get(position).getTitle(),
                                             tasks.get(position).getStatus(),
                                             tasks.get(position).getDescription(),
-                                            tasks.get(position).getCreated(),
+                                            tasks.get(position).getCreatedAt(),
                                             tasks.get(position).getStaffNote()));
         holder.getSpinner().setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -298,6 +300,8 @@ public class TaskItemAdapter extends RecyclerView.Adapter<TaskItemAdapter.ViewHo
             ).create();
         return alertDialog;
     }
+
+
 
 
 
